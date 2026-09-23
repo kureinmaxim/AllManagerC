@@ -32,8 +32,8 @@ Windows собирается отдельно на Windows. Запуск на Li
 Для новой рабочей копии:
 
 ```bash
-git clone https://github.com/kureinmaxim/ai-manager.git
-cd ai-manager
+git clone https://github.com/kureinmaxim/AllManagerC.git
+cd AllManagerC
 ```
 
 ### macOS

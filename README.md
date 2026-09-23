@@ -1,6 +1,6 @@
 > **Единый проект: AllManagerC**
 >
-> Рабочая папка — `AiManage-Clean`, репозиторий — `kureinmaxim/ai-manager`.
+> Рабочая папка — `AiManage-Clean`, репозиторий — `kureinmaxim/AllManagerC`.
 > Сюда объединены функции AiManage и GitHub-версии. Папка AiManage остаётся
 > исходным архивом; дальнейшие изменения делайте здесь.
 >
@@ -50,8 +50,8 @@
 
 ## ⬇️ Скачать
 
-- Последний релиз: [Latest Release](https://github.com/kureinmaxim/ai-manager/releases/latest)
-- Прямая ссылка (v5.6.0, macOS DMG): [AllManagerC_Installer_v5.6.0.dmg](https://github.com/kureinmaxim/ai-manager/releases/download/v5.6.0/AllManagerC_Installer_v5.6.0.dmg)
+- Последний релиз: [Latest Release](https://github.com/kureinmaxim/AllManagerC/releases/latest)
+- Прямая ссылка (v5.6.0, macOS DMG): [AllManagerC_Installer_v5.6.0.dmg](https://github.com/kureinmaxim/AllManagerC/releases/download/v5.6.0/AllManagerC_Installer_v5.6.0.dmg)
 - SHA256(DMG): `будет обновлен после сборки`
 
 ## 🚀 Установка
@@ -73,7 +73,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ```bash
 git clone https://github.com/your-username/ai-manager.git
-cd ai-manager
+cd AllManagerC
 ```
 
 ### Установка зависимостей

@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 
+
 {% block title %}Редактировать AI-сервис{% endblock %}
 
 {% block content %}
@@ -62,38 +63,98 @@
                     </select>
                     <div class="form-text">Выберите способ входа, который будет отображаться на карточке сервиса</div>                </div>
 
+                <!-- Учетные данные: основной набор + дополнительные аккаунты -->
                 <div class="accordion" id="credentials-accordion">
-  <div class="accordion-item">
-    <h2 class="accordion-header" id="credentials-heading">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#credentials-collapse" aria-expanded="false" aria-controls="credentials-collapse">
-        <i class="bi bi-key me-2"></i>Учетные данные
-      </button>
-    </h2>
-    <div id="credentials-collapse" class="accordion-collapse collapse" aria-labelledby="credentials-heading" data-bs-parent="#credentials-accordion">
-      <div class="accordion-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="username" class="form-label">Имя пользователя/Email</label>
-                        <input type="text" class="form-control" id="username" name="username" value="{{ service.credentials.username }}">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="password" class="form-label">Новый пароль</label>
-                        <input type="password" class="form-control" id="password" name="password" aria-describedby="passwordHelp">
-                        <div id="passwordHelp" class="form-text">Оставьте пустым, чтобы не менять.</div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="credentials-heading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#credentials-collapse" aria-expanded="false" aria-controls="credentials-collapse">
+                                <i class="bi bi-key me-2"></i>Учетные данные (несколько аккаунтов)
+                            </button>
+                        </h2>
+                        <div id="credentials-collapse" class="accordion-collapse collapse" aria-labelledby="credentials-heading" data-bs-parent="#credentials-accordion">
+                            <div class="accordion-body">
+                                <!-- Основной набор -->
+                                <div class="border rounded p-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>Основные учетные данные</strong>
+                                        <span class="badge text-bg-secondary">Primary</span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="username" class="form-label">Имя пользователя/Email</label>
+                                            <input type="text" class="form-control" id="username" name="username" value="{{ service.credentials.username }}">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="password" class="form-label">Новый пароль</label>
+                                            <input type="password" class="form-control" id="password" name="password" aria-describedby="passwordHelp">
+                                            <div id="passwordHelp" class="form-text">Оставьте пустым, чтобы не менять.</div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Дополнительные аккаунты -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>Дополнительные аккаунты</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-credential-btn">
+                                        <i class="bi bi-plus-lg"></i> Добавить аккаунт
+                                    </button>
+                                </div>
+                                <div id="extra-credentials-list">
+                                    {% set extras = service.credentials_list if service.credentials_list else [] %}
+                                    {% for cred in extras %}
+                                    <div class="border rounded p-3 mb-3 extra-credential-item">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Учетные данные {{ loop.index + 1 }}</span>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-credential-btn"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Имя пользователя/Email</label>
+                                            <input type="hidden" name="extra_index[]" value="{{ loop.index0 }}">
+                                            <input type="text" class="form-control" name="extra_username[]" value="{{ cred.username_decrypted }}">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Пароль</label>
+                                                <input type="password" class="form-control" name="extra_password[]" placeholder="Оставьте пустым чтобы не менять">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    {% endfor %}
+                                </div>
+
+                                <template id="extra-credential-template">
+                                    <div class="border rounded p-3 mb-3 extra-credential-item">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Учетные данные N</span>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-credential-btn"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Имя пользователя/Email</label>
+                                                <input type="hidden" name="extra_index[]" value="">
+                                                <input type="text" class="form-control" name="extra_username[]" value="">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Пароль</label>
+                                                <input type="password" class="form-control" name="extra_password[]" value="">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="mb-3">
                     <label for="additional_info" class="form-label">Дополнительная информация для входа</label>
                     <textarea class="form-control" id="additional_info" name="additional_info" rows="2">{{ service.credentials.additional_info }}</textarea>
                 </div>
 
-                </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<h5 class="mt-4">Подписка и оплата</h5>
+                <h5 class="mt-4">Подписка и оплата</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="plan_name" class="form-label">Название плана</label>
@@ -228,12 +289,11 @@
 
                 <h5 class="mt-4">Дополнительная информация</h5>
                 <div class="mb-3">
-                    <label for="notes" class="form-label">Заметки</label>
                     <textarea class="form-control" id="notes" name="notes" rows="3">{{ service.notes }}</textarea>
                 </div>
                 
                 <button type="submit" class="btn btn-primary mt-3">Сохранить изменения</button>
-                <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Отмена</a>
+                <a href="{{ url_for('index', highlight_id=service.id) }}" class="btn btn-secondary mt-3">Отмена</a>
             </form>
         </div>
         <div class="col-md-4">
@@ -266,56 +326,6 @@
         </div>
     </div>
 </div>
-
-<script>
-// Функция для обновления OAuth методов
-document.addEventListener('DOMContentLoaded', updateOAuthMethods);
-</script>{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Валидация URL
-    const urlFields = ['login_url', 'dashboard_url'];
-    urlFields.forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        if (field) {
-            field.addEventListener('blur', function() {
-                if (this.value && !this.value.startsWith('http')) {
-                    this.value = 'https://' + this.value;
-                }
-            });
-        }
-    });
-
-    // Подсчет стоимости в год
-    const costField = document.getElementById('cost_monthly');
-    const cycleField = document.getElementById('billing_cycle');
-    
-    function updateYearlyCost() {
-        const monthlyCost = parseFloat(costField.value) || 0;
-        const cycle = cycleField.value;
-        let yearlyCost = 0;
-        
-        switch(cycle) {
-            case 'weekly': yearlyCost = monthlyCost * 52; break;
-            case 'monthly': yearlyCost = monthlyCost * 12; break;
-            case 'quarterly': yearlyCost = monthlyCost * 4; break;
-            case 'yearly': yearlyCost = monthlyCost; break;
-        }
-        
-        if (yearlyCost > 0) {
-            costField.title = `Примерно ${yearlyCost.toFixed(2)} в год`;
-        }
-    }
-    
-    if (costField && cycleField) {
-        costField.addEventListener('input', updateYearlyCost);
-        cycleField.addEventListener('change', updateYearlyCost);
-        updateYearlyCost(); // Первоначальный расчет
-    }
-});
-</script>
 
 <script>
 // Функция для обновления OAuth методов
@@ -375,5 +385,85 @@ document.getElementById('name').addEventListener('change', updateOAuthMethods);
 
 // Инициализируем при загрузке
 document.addEventListener('DOMContentLoaded', updateOAuthMethods);
-</script>
-{% endblock %}
+</script>{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Валидация URL
+    const urlFields = ['login_url', 'dashboard_url'];
+    urlFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (field) {
+            field.addEventListener('blur', function() {
+                if (this.value && !this.value.startsWith('http')) {
+                    this.value = 'https://' + this.value;
+                }
+            });
+        }
+    });
+
+    // Подсчет стоимости в год
+    const costField = document.getElementById('cost_monthly');
+    const cycleField = document.getElementById('billing_cycle');
+
+    function updateYearlyCost() {
+        const monthlyCost = parseFloat(costField.value) || 0;
+        const cycle = cycleField.value;
+        let yearlyCost = 0;
+
+        switch(cycle) {
+            case 'weekly': yearlyCost = monthlyCost * 52; break;
+            case 'monthly': yearlyCost = monthlyCost * 12; break;
+            case 'quarterly': yearlyCost = monthlyCost * 4; break;
+            case 'yearly': yearlyCost = monthlyCost; break;
+        }
+
+        if (yearlyCost > 0) {
+            costField.title = `Примерно ${yearlyCost.toFixed(2)} в год`;
+        }
+    }
+
+    if (costField && cycleField) {
+        costField.addEventListener('input', updateYearlyCost);
+        cycleField.addEventListener('change', updateYearlyCost);
+        updateYearlyCost(); // Первоначальный расчет
+    }
+
+    // Динамическое управление дополнительными учетными данными
+    const addBtn = document.getElementById('add-credential-btn');
+    const list = document.getElementById('extra-credentials-list');
+    const tpl = document.getElementById('extra-credential-template');
+    function renumber() {
+        list.querySelectorAll('.extra-credential-item').forEach((item, idx) => {
+            const title = item.querySelector('span');
+            if (title) title.textContent = `Учетные данные ${idx + 1}`;
+        });
+    }
+    if (addBtn && list && tpl) {
+        addBtn.addEventListener('click', function() {
+            const node = tpl.content.cloneNode(true);
+            list.appendChild(node);
+            renumber();
+        });
+        list.addEventListener('click', function(e) {
+            const btn = e.target.closest('.remove-credential-btn');
+            if (btn) {
+                const item = btn.closest('.extra-credential-item');
+                if (item) {
+                    item.remove();
+                    renumber();
+                }
+            }
+        });
+        renumber();
+    }
+
+    // Выход без сохранения по Esc
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.location.href = "{{ url_for('index', highlight_id=service.id) }}";
+        }
+    });
+});
+</script>{% endblock %}

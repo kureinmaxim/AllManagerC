@@ -1,252 +1,181 @@
-# 🍎 Создание релиза для macOS
+# Сборка AllManagerC для этого Mac
 
-Инструкция по сборке и публикации релиза AllManagerC для macOS.
+Проверено 23 сентября 2026: macOS 26.6.2, Apple Silicon arm64,
+Python 3.13.9, PyInstaller 6.16.0. Собираем объединённый проект из AiManage-Clean.
 
-> **⚠️ Важно о виртуальном окружении:**  
-> Виртуальные окружения `.venv` **специфичны для платформы**. Если вы работали на Windows и создали там `.venv`, при переходе на macOS нужно:
-> - Либо удалить `.venv` командой `rm -rf .venv` и создать заново
-> - Либо использовать скрипт `build_macos.sh` - он автоматически обнаружит Windows `.venv` и пересоздаст для macOS
-> 
-> Виртуальное окружение **не должно** попадать в git (уже в `.gitignore`).
+## 1. Проверить окружение
 
-## 📋 Требования
-
-- macOS 10.13+
-- Python 3.8+
-- Xcode Command Line Tools
-- [create-dmg](https://github.com/create-dmg/create-dmg) (опционально, для красивого DMG)
-
-## 🚀 Подготовка окружения
-
-### 1. Установка зависимостей
+Из папки AiManage-Clean:
 
 ```bash
-# Переход в директорию проекта
-cd ai-manager
+uname -m
+xcode-select -p
+.venv/bin/python -c 'import flask, webview, AppKit, WebKit, PIL, PyInstaller; print(PyInstaller.__version__)'
+```
 
-# Проверка окружения (опционально, но рекомендуется)
-python3 check_env.py
+В этом проекте рабочее окружение `.venv` уже есть. Для нового Mac создайте его
+и установите зависимости (добавка Qt на macOS не нужна):
 
-# Создание виртуального окружения
+```bash
 python3 -m venv .venv
-
-# Активация окружения
-source .venv/bin/activate
-
-# Установка зависимостей
-pip install -r requirements.txt
-pip install pyinstaller
-
-# Опционально: для создания красивого DMG
-brew install create-dmg
-
-# Повторная проверка окружения
-python check_env.py
+.venv/bin/python -m pip install Flask requests python-dotenv cryptography Werkzeug Jinja2 pywebview yubico-client pyinstaller pillow
 ```
 
-## 📦 Сборка приложения
+Нужны Xcode Command Line Tools и штатные `codesign`, `ditto`, `hdiutil`.
+`create-dmg` не требуется. Текущий скрипт собирает arm64 для Apple Silicon.
 
-### 2. Создание .app с PyInstaller
+## 2. Запустить тесты
 
 ```bash
-# Базовая сборка
-pyinstaller --name="AllManagerC" \
-    --windowed \
-    --onedir \
-    --icon=static/images/icon.ico \
-    --add-data="templates:templates" \
-    --add-data="static:static" \
-    --add-data="config.json:." \
-    --add-data="data:data" \
-    --hidden-import=flask \
-    --hidden-import=werkzeug \
-    --hidden-import=jinja2 \
-    --hidden-import=cryptography \
-    --hidden-import=requests \
-    --hidden-import=webview \
-    --hidden-import=yubico_client \
-    app.py
-
-# Результат будет в dist/AllManagerC.app
+.venv/bin/python -m unittest discover -s tests -v
 ```
 
-### 3. Проверка сборки
+Тесты используют временные данные. В том числе проверяют сохранение ключа
+и чтение базы после повторного запуска упакованного приложения.
+
+## 3. Собрать приложение
+
+Выберите новую папку результата; существующее приложение не перезаписывается:
 
 ```bash
-# Запуск приложения для проверки
-open dist/AllManagerC.app
-
-# Проверка зависимостей
-otool -L dist/AllManagerC.app/Contents/MacOS/AllManagerC
+bash build_macos.sh --stage app --output dist/macos-arm64-20260923
 ```
 
-## 🎨 Создание DMG инсталлятора
+Для следующей сборки укажите другое имя папки. Можно выполнить оба этапа сразу
+командой `bash build_macos.sh`: скрипт сам создаст папку с датой и временем.
+Для другого Python задайте `BUILD_PYTHON=/путь/к/python` перед командой.
 
-### 4. Подготовка DMG
+Результат — `dist/macos-arm64-20260923/AllManagerC.app`.
 
-#### Вариант A: С помощью create-dmg (рекомендуется)
+Скрипт `tools/build_macos.py`:
+
+- создаёт `.icns` из GitHub-иконки `static/images/ALLc.png`;
+- включает шаблоны, статику, схему и чистый конфиг;
+- не включает `.env`, базы, загруженные файлы и настройки YubiKey;
+- использует Cocoa/WebKit и исключает Qt;
+- проверяет подпись через `codesign --verify --deep --strict`;
+- сохраняет старые сборки и виртуальные окружения.
+
+При работе из Codex PyInstaller может запросить разрешение на запись своего
+кэша в `~/Library/Application Support/pyinstaller`. Это служебный кэш сборки.
+
+## 4. Проверить запуск
 
 ```bash
-# Создание красивого DMG с фоном и иконками
-create-dmg \
-    --volname "AllManagerC v5.6.0" \
-    --volicon "static/images/icon.ico" \
-    --window-pos 200 120 \
-    --window-size 800 400 \
-    --icon-size 100 \
-    --icon "AllManagerC.app" 200 190 \
-    --hide-extension "AllManagerC.app" \
-    --app-drop-link 600 185 \
-    "dist/AllManagerC_Installer_v5.6.0.dmg" \
-    "dist/AllManagerC.app"
+open dist/macos-arm64-20260923/AllManagerC.app
 ```
 
-#### Вариант B: Простой DMG
+Для проверки с отдельными пустыми данными можно запустить исполняемый файл:
 
 ```bash
-# Создание папки для DMG
-mkdir -p dist/dmg
-cp -r dist/AllManagerC.app dist/dmg/
-ln -s /Applications dist/dmg/Applications
-
-# Создание DMG
-hdiutil create -volname "AllManagerC v5.6.0" \
-    -srcfolder dist/dmg \
-    -ov -format UDZO \
-    dist/AllManagerC_Installer_v5.6.0.dmg
-
-# Очистка
-rm -rf dist/dmg
+ALLMANAGERC_DATA_DIR=/tmp/allmanagerc-test-profile \
+  dist/macos-arm64-20260923/AllManagerC.app/Contents/MacOS/AllManagerC
 ```
 
-## 🔐 Подписание приложения (опционально)
+Обычный запуск хранит данные и ключ в
+`~/Library/Application Support/AllManagerC`. Первый запуск создаёт собственный
+ключ; следующие должны использовать его повторно. Исходные базы обоих проектов
+по-прежнему сохранены отдельно, их импорт пользователь отложил.
 
-### 5. Подписание для распространения
+## 5. Создать DMG
+
+После проверки приложения, с той же папкой результата:
 
 ```bash
-# Требуется Apple Developer ID
-codesign --deep --force --verify --verbose \
-    --sign "Developer ID Application: Your Name (TEAM_ID)" \
-    dist/AllManagerC.app
-
-# Проверка подписи
-codesign --verify --deep --strict --verbose=2 dist/AllManagerC.app
-spctl -a -t exec -vv dist/AllManagerC.app
+bash build_macos.sh --stage dmg --output dist/macos-arm64-20260923
 ```
 
-### 6. Нотаризация (для распространения вне App Store)
+Результат: `AllManagerC_Installer_v5.6.0_arm64.dmg` и файл `.dmg.sha256` рядом.
+Внутри образа — `AllManagerC.app` и ссылка на `/Applications`.
+
+`hdiutil` требует доступа к системным устройствам дисковых образов. При ошибке
+`Device not configured` в песочнице Codex разрешите выполнение вне песочницы.
+Если подготовленная папка `dmg-content` уже создана, повторить только упаковку:
 
 ```bash
-# Упаковка для нотаризации
-ditto -c -k --keepParent dist/AllManagerC.app AllManagerC.zip
-
-# Отправка на нотаризацию
-xcrun notarytool submit AllManagerC.zip \
-    --apple-id "your-email@example.com" \
-    --team-id "TEAM_ID" \
-    --password "app-specific-password"
-
-# Проверка статуса
-xcrun notarytool log <submission-id> \
-    --apple-id "your-email@example.com" \
-    --team-id "TEAM_ID" \
-    --password "app-specific-password"
-
-# После успешной нотаризации - прикрепить тикет
-xcrun stapler staple dist/AllManagerC.app
+hdiutil create -volname 'AllManagerC 5.6.0' \
+  -srcfolder dist/macos-arm64-20260923/dmg-content \
+  -format UDZO -fs HFS+ \
+  dist/macos-arm64-20260923/AllManagerC_Installer_v5.6.0_arm64.dmg
+hdiutil verify dist/macos-arm64-20260923/AllManagerC_Installer_v5.6.0_arm64.dmg
+shasum -a 256 dist/macos-arm64-20260923/AllManagerC_Installer_v5.6.0_arm64.dmg
 ```
 
-## 📊 Проверка и тестирование
+## 6. Установка
 
-### 7. Финальная проверка
+Откройте DMG и перетащите AllManagerC в Applications. Если там уже есть старая
+версия, сначала сохраните её, если нужен откат. Запустите приложение из Applications.
+
+Сборка имеет локальную ad-hoc подпись PyInstaller. Developer ID и нотариальное
+заверение Apple не выполнялись. Публикация GitHub Release — отдельное действие;
+скрипт ничего не отправляет на GitHub.
+
+## 7. Подготовить общий релиз Windows и macOS
+
+Полезные сведения из прежнего QUICK_RELEASE_GUIDE.md перенесены сюда.
+Платформы можно собирать в любом порядке. Для одной версии используйте один
+Git-тег и один GitHub Release, добавляя в него инсталляторы обеих платформ.
+Виртуальные окружения создаются отдельно на каждой системе и не попадают в Git.
+
+Перед публичным релизом объединённого кода:
+
+1. Выберите новый номер версии: локальная сборка пока использует 5.6.0 из конфигурации,
+   но содержит более новые изменения. Не переиспользуйте старый опубликованный тег.
+2. Согласуйте версию в `config.json`, Windows-инсталляторе `AllManagerC.iss`,
+   резервных значениях версии в коде и документации.
+3. Обновите `CHANGELOG.md` и подготовьте заметки о новом релизе.
+4. Проверьте `git status` и diff; включите в коммит только предназначенные для
+   публикации исходники. Личные ключи, базы и `.local-backups` остаются локальными.
+5. Создайте аннотированный тег (`git tag -a`) на проверенном коммите.
+   Сборки Windows и macOS должны соответствовать этому же коммиту.
+6. Проверьте запуск и установку на целевых системах, сохраните SHA256 каждого файла.
+
+Если часть платформ ещё не проверена, релиз можно оставить черновиком или
+pre-release. Снимать этот статус следует после проверки всех обещанных сборок.
+
+### Добавить DMG к существующему релизу
+
+Через [страницу релизов проекта](https://github.com/kureinmaxim/ai-manager/releases):
+откройте нужный релиз, выберите Edit, добавьте DMG и файл `.sha256`, укажите
+архитектуру arm64 и результаты проверки в описании. Ссылки и хеш обновите в README.
+
+Через GitHub CLI, заменив значения на новый тег и фактический путь:
 
 ```bash
-# Размер приложения
-du -sh dist/AllManagerC.app
-du -sh dist/AllManagerC_Installer_v5.6.0.dmg
+RELEASE_TAG=vX.Y.Z
+DMG_PATH=dist/папка-сборки/AllManagerC_Installer_vX.Y.Z_arm64.dmg
 
-# SHA256 хеш для релиза
-shasum -a 256 dist/AllManagerC_Installer_v5.6.0.dmg
-
-# Проверка на чистой системе
-# Откройте DMG и перетащите приложение в Applications
-open dist/AllManagerC_Installer_v5.6.0.dmg
+gh release upload "$RELEASE_TAG" "$DMG_PATH" "$DMG_PATH.sha256"
+# Только после завершения проверки всех обещанных платформ:
+gh release edit "$RELEASE_TAG" --prerelease=false
 ```
 
-## 📤 Публикация релиза
+Эти команды публикуют файлы; они не выполняются скриптом сборки автоматически.
+Не используйте `--clobber`, если не намерены заменить уже опубликованный файл.
 
-### 8. Создание GitHub Release
+### Сопутствующая сборка Windows
+
+Выполняется на Windows из того же коммита, со своим Python-окружением:
+
+```powershell
+python build_windows.py
+& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" AllManagerC.iss
+```
+
+Оператор `&` нужен PowerShell для запуска программы по пути с пробелами.
+Затем добавьте Windows-инсталлятор к тому же релизу.
+
+### Если виртуальное окружение не запускается
+
+Перенесённое с Windows окружение на Mac не работает. Сохраните его при необходимости
+и создайте отдельное, например `.venv-macos`, командами из шага 1. Запускайте сборку так:
 
 ```bash
-# Создание тега
-git tag -a v5.6.0 -m "Release version 5.6.0"
-git push origin v5.6.0
-
-# Загрузка через GitHub CLI
-gh release create v5.6.0 \
-    dist/AllManagerC_Installer_v5.6.0.dmg \
-    --title "AllManagerC v5.6.0" \
-    --notes-file CHANGELOG.md
+BUILD_PYTHON=.venv-macos/bin/python bash build_macos.sh
 ```
 
-### 9. Обновление README.md
+Если отсутствует только pip, попробуйте `python -m ensurepip --upgrade` с Python
+нужного окружения. Скрипт сборки больше не удаляет и не пересоздаёт окружения сам.
 
-После публикации обновите README.md:
-
-```markdown
-## ⬇️ Скачать
-
-- Последний релиз: [Latest Release](https://github.com/kureinmaxim/ai-manager/releases/latest)
-- Прямая ссылка (v5.6.0, macOS DMG): [AllManagerC_Installer_v5.6.0.dmg](https://github.com/kureinmaxim/ai-manager/releases/download/v5.6.0/AllManagerC_Installer_v5.6.0.dmg)
-- SHA256(DMG): `<вставьте хеш из шага 7>`
-```
-
-## 🔍 Решение проблем
-
-### Ошибка "App is damaged"
-
-Если пользователи видят ошибку "App is damaged and can't be opened":
-
-```bash
-# Удаление карантинных атрибутов
-xattr -cr /Applications/AllManagerC.app
-```
-
-### Проблемы с импортом модулей
-
-```bash
-# Добавьте --collect-all для проблемных модулей
-pyinstaller ... --collect-all flask --collect-all werkzeug
-```
-
-### Большой размер приложения
-
-```bash
-# Исключите ненужные модули
-pyinstaller ... \
-    --exclude-module=PyQt5 \
-    --exclude-module=PyQt6 \
-    --exclude-module=matplotlib \
-    --exclude-module=numpy
-```
-
-## 📝 Чек-лист релиза
-
-- [ ] Обновлена версия в `config.json`
-- [ ] Обновлен `CHANGELOG.md`
-- [ ] Проведено тестирование на чистой macOS
-- [ ] Создан DMG инсталлятор
-- [ ] Вычислен SHA256 хеш
-- [ ] Создан git tag
-- [ ] Опубликован GitHub Release
-- [ ] Обновлен README.md с новой ссылкой и хешем
-- [ ] Протестирована установка из DMG
-
-## 🎉 Готово!
-
-Ваш релиз AllManagerC v5.6.0 для macOS готов к распространению!
-
----
-
-**Примечание:** Для автоматизации этого процесса можно создать скрипт `build_macos.sh` или использовать GitHub Actions.
-
+Связанные документы: [README](README.md), [CHANGELOG](CHANGELOG.md),
+[работа на двух платформах](DEPLOYMENT.md).

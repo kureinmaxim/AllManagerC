@@ -1,63 +1,7 @@
 {% extends "layout.html" %}
 
 
-<script>
-// Функция для обновления OAuth методов
-function updateOAuthMethods() {
-    const serviceName = document.getElementById('name').value;
-    const select = document.getElementById('preferred_oauth_method');
-    
-    // Очищаем текущие опции
-    select.innerHTML = '<option value="">Выберите способ входа...</option>';
-    
-    if (!serviceName) return;
-    
-    // Определяем доступные OAuth методы
-    const oauthMethods = getOAuthMethods(serviceName);
-    
-    // Добавляем опции
-    Object.entries(oauthMethods).forEach(([key, oauth]) => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = `${oauth.icon} ${oauth.name}`;
-        select.appendChild(option);
-    });
-}
-
-// Функция получения OAuth методов (упрощенная версия)
-function getOAuthMethods(serviceName) {
-    const methods = {};
-    
-    // Специфичные методы
-    const lowerName = serviceName.toLowerCase();
-    if (lowerName.includes('cursor')) {
-        methods.cursor = { name: 'Cursor Account', icon: '⚡' };
-    } else if (lowerName.includes('chatgpt') || lowerName.includes('openai')) {
-        methods.openai = { name: 'OpenAI Account', icon: '🤖' };
-    } else if (lowerName.includes('medium')) {
-        methods.medium = { name: 'Medium Account', icon: '📝' };
-    } else if (lowerName.includes('notion')) {
-        methods.notion = { name: 'Notion Account', icon: '📄' };
-    } else if (lowerName.includes('figma')) {
-        methods.figma = { name: 'Figma Account', icon: '🎨' };
-    }
-    
-    // Универсальные методы
-    methods.google = { name: 'Google', icon: '🔐' };
-    methods.apple = { name: 'Apple ID', icon: '🍎' };
-    methods.github = { name: 'GitHub', icon: '🐙' };
-    methods.microsoft = { name: 'Microsoft', icon: '🪟' };
-    
-    return methods;
-}
-
-// Обновляем методы при изменении имени сервиса
-document.getElementById('name').addEventListener('input', updateOAuthMethods);
-document.getElementById('name').addEventListener('change', updateOAuthMethods);
-
-// Инициализируем при загрузке
-document.addEventListener('DOMContentLoaded', updateOAuthMethods);
-</script>{% block title %}Добавить AI-сервис{% endblock %}
+{% block title %}Добавить AI-сервис{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -120,37 +64,74 @@ document.addEventListener('DOMContentLoaded', updateOAuthMethods);
                     </select>
                     <div class="form-text">Выберите способ входа, который будет отображаться на карточке сервиса</div>                </div>
 
+                <!-- Учетные данные: основной набор + дополнительные аккаунты -->
                 <div class="accordion" id="credentials-accordion">
-  <div class="accordion-item">
-    <h2 class="accordion-header" id="credentials-heading">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#credentials-collapse" aria-expanded="false" aria-controls="credentials-collapse">
-        <i class="bi bi-key me-2"></i>Учетные данные
-      </button>
-    </h2>
-    <div id="credentials-collapse" class="accordion-collapse collapse" aria-labelledby="credentials-heading" data-bs-parent="#credentials-accordion">
-      <div class="accordion-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="username" class="form-label">Имя пользователя/Email</label>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="user@example.com">
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="password" class="form-label">Пароль</label>
-                        <input type="password" class="form-control" id="password" name="password">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="credentials-heading">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#credentials-collapse" aria-expanded="false" aria-controls="credentials-collapse">
+                                <i class="bi bi-key me-2"></i>Учетные данные (несколько аккаунтов)
+                            </button>
+                        </h2>
+                        <div id="credentials-collapse" class="accordion-collapse collapse" aria-labelledby="credentials-heading" data-bs-parent="#credentials-accordion">
+                            <div class="accordion-body">
+                                <!-- Основной набор -->
+                                <div class="border rounded p-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>Основные учетные данные</strong>
+                                        <span class="badge text-bg-secondary">Primary</span>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="username" class="form-label">Имя пользователя/Email</label>
+                                            <input type="text" class="form-control" id="username" name="username" placeholder="user@example.com">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="password" class="form-label">Пароль</label>
+                                            <input type="password" class="form-control" id="password" name="password">
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Дополнительные аккаунты -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>Дополнительные аккаунты</strong>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-credential-btn">
+                                        <i class="bi bi-plus-lg"></i> Добавить аккаунт
+                                    </button>
+                                </div>
+                                <div id="extra-credentials-list"></div>
+                                <template id="extra-credential-template">
+                                    <div class="border rounded p-3 mb-3 extra-credential-item">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Учетные данные N</span>
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-credential-btn"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Имя пользователя/Email</label>
+                                                <input type="hidden" name="extra_index[]" value="">
+                                                <input type="text" class="form-control" name="extra_username[]" value="">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">Пароль</label>
+                                                <input type="password" class="form-control" name="extra_password[]" value="">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="mb-3">
                     <label for="additional_info" class="form-label">Дополнительная информация для входа</label>
-                    <textarea class="form-control" id="additional_info" name="additional_info" rows="2" placeholder="API ключи, токены, двухфакторная аутентификация и т.д."></textarea>
+                    <textarea class="form-control" id="additional_info" name="additional_info" rows="2"></textarea>
                 </div>
 
-                </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<h5 class="mt-4">Подписка и оплата</h5>
+                <h5 class="mt-4">Подписка и оплата</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="plan_name" class="form-label">Название плана</label>
@@ -232,8 +213,7 @@ document.addEventListener('DOMContentLoaded', updateOAuthMethods);
                 </div>
 
                 <h5 class="mt-4">Дополнительная информация</h5>
-                 <div class="mb-3">
-                    <label for="notes" class="form-label">Заметки</label>
+                <div class="mb-3">
                     <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Общие заметки, особенности использования, полезные ссылки"></textarea>
                 </div>
                 
@@ -278,6 +258,60 @@ document.addEventListener('DOMContentLoaded', updateOAuthMethods);
 
 <script>
 // Функция для обновления OAuth методов
+function updateOAuthMethods() {
+    const serviceName = document.getElementById('name').value;
+    const select = document.getElementById('preferred_oauth_method');
+
+    // Очищаем текущие опции
+    select.innerHTML = '<option value="">Выберите способ входа...</option>';
+
+    if (!serviceName) return;
+
+    // Определяем доступные OAuth методы
+    const oauthMethods = getOAuthMethods(serviceName);
+
+    // Добавляем опции
+    Object.entries(oauthMethods).forEach(([key, oauth]) => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = `${oauth.icon} ${oauth.name}`;
+        select.appendChild(option);
+    });
+}
+
+// Функция получения OAuth методов (упрощенная версия)
+function getOAuthMethods(serviceName) {
+    const methods = {};
+
+    // Специфичные методы
+    const lowerName = serviceName.toLowerCase();
+    if (lowerName.includes('cursor')) {
+        methods.cursor = { name: 'Cursor Account', icon: '⚡' };
+    } else if (lowerName.includes('chatgpt') || lowerName.includes('openai')) {
+        methods.openai = { name: 'OpenAI Account', icon: '🤖' };
+    } else if (lowerName.includes('medium')) {
+        methods.medium = { name: 'Medium Account', icon: '📝' };
+    } else if (lowerName.includes('notion')) {
+        methods.notion = { name: 'Notion Account', icon: '📄' };
+    } else if (lowerName.includes('figma')) {
+        methods.figma = { name: 'Figma Account', icon: '🎨' };
+    }
+
+    // Универсальные методы
+    methods.google = { name: 'Google', icon: '🔐' };
+    methods.apple = { name: 'Apple ID', icon: '🍎' };
+    methods.github = { name: 'GitHub', icon: '🐙' };
+    methods.microsoft = { name: 'Microsoft', icon: '🪟' };
+
+    return methods;
+}
+
+// Обновляем методы при изменении имени сервиса
+document.getElementById('name').addEventListener('input', updateOAuthMethods);
+document.getElementById('name').addEventListener('change', updateOAuthMethods);
+
+// Инициализируем при загрузке
+document.addEventListener('DOMContentLoaded', updateOAuthMethods);
 </script>{% endblock %}
 
 {% block scripts %}
@@ -374,63 +408,34 @@ document.addEventListener('DOMContentLoaded', function() {
             currencyField.addEventListener('change', updateYearlyCost);
         }
     }
-});
-</script>
-{% endblock %}
 
-<script>
-// Функция для обновления OAuth методов
-function updateOAuthMethods() {
-    const serviceName = document.getElementById('name').value;
-    const select = document.getElementById('preferred_oauth_method');
-    
-    // Очищаем текущие опции
-    select.innerHTML = '<option value="">Выберите способ входа...</option>';
-    
-    if (!serviceName) return;
-    
-    // Определяем доступные OAuth методы
-    const oauthMethods = getOAuthMethods(serviceName);
-    
-    // Добавляем опции
-    Object.entries(oauthMethods).forEach(([key, oauth]) => {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = `${oauth.icon} ${oauth.name}`;
-        select.appendChild(option);
-    });
-}
-
-// Функция получения OAuth методов (упрощенная версия)
-function getOAuthMethods(serviceName) {
-    const methods = {};
-    
-    // Специфичные методы
-    const lowerName = serviceName.toLowerCase();
-    if (lowerName.includes('cursor')) {
-        methods.cursor = { name: 'Cursor Account', icon: '⚡' };
-    } else if (lowerName.includes('chatgpt') || lowerName.includes('openai')) {
-        methods.openai = { name: 'OpenAI Account', icon: '🤖' };
-    } else if (lowerName.includes('medium')) {
-        methods.medium = { name: 'Medium Account', icon: '📝' };
-    } else if (lowerName.includes('notion')) {
-        methods.notion = { name: 'Notion Account', icon: '📄' };
-    } else if (lowerName.includes('figma')) {
-        methods.figma = { name: 'Figma Account', icon: '🎨' };
+    // Динамическое управление дополнительными учетными данными
+    const addBtn = document.getElementById('add-credential-btn');
+    const list = document.getElementById('extra-credentials-list');
+    const tpl = document.getElementById('extra-credential-template');
+    function renumber() {
+        list.querySelectorAll('.extra-credential-item').forEach((item, idx) => {
+            const title = item.querySelector('span');
+            if (title) title.textContent = `Учетные данные ${idx + 1}`;
+        });
     }
-    
-    // Универсальные методы
-    methods.google = { name: 'Google', icon: '🔐' };
-    methods.apple = { name: 'Apple ID', icon: '🍎' };
-    methods.github = { name: 'GitHub', icon: '🐙' };
-    methods.microsoft = { name: 'Microsoft', icon: '🪟' };
-    
-    return methods;
-}
-
-// Обновляем методы при изменении имени сервиса
-document.getElementById('name').addEventListener('input', updateOAuthMethods);
-document.getElementById('name').addEventListener('change', updateOAuthMethods);
-
-// Инициализируем при загрузке
-document.addEventListener('DOMContentLoaded', updateOAuthMethods);
+    if (addBtn && list && tpl) {
+        addBtn.addEventListener('click', function() {
+            const node = tpl.content.cloneNode(true);
+            list.appendChild(node);
+            renumber();
+        });
+        list.addEventListener('click', function(e) {
+            const btn = e.target.closest('.remove-credential-btn');
+            if (btn) {
+                const item = btn.closest('.extra-credential-item');
+                if (item) {
+                    item.remove();
+                    renumber();
+                }
+            }
+        });
+        renumber();
+    }
+});
+</script>{% endblock %}

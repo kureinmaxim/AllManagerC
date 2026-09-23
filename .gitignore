@@ -114,12 +114,6 @@ tmp/
 *~
 
 # Тестовые файлы и директории
-test/
-tests/
-*_test.py
-*_tests.py
-test_*.py
-tests_*.py
 
 # Логи и отчеты
 *.log
@@ -182,10 +176,6 @@ data/temp_*
 *.pyd
 
 # GitHub специфичные файлы
-.github/
-.github/workflows/
-.github/ISSUE_TEMPLATE/
-.github/PULL_REQUEST_TEMPLATE.md
 
 # Конфиденциальные данные
 .env
@@ -214,5 +204,6 @@ uploads/
 temp/
 cache/ 
 
-tools/
 MemoryBank/
+# Local migration backups (may contain secrets)
+.local-backups/

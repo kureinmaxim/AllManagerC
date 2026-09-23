@@ -66,7 +66,7 @@ def build():
         "templates;templates",
         "static;static",
         "config.json;.",
-        "data;data",
+        "ai_services_schema.json;.",
     ]
 
     hidden = [

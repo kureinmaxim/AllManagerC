@@ -508,6 +508,13 @@ def init_yubikey_auth(app_data_dir):
             """Загружает .env файл из различных возможных мест."""
             from pathlib import Path
             
+            if getattr(sys, 'frozen', False):
+                env_path = Path(app_data_dir) / '.env'
+                if env_path.is_file():
+                    load_dotenv(env_path)
+                    return True
+                return False
+
             # Список возможных путей к .env файлу
             possible_paths = []
             

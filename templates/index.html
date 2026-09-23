@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <!-- Блок для вывода flash-сообщений -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -22,7 +22,12 @@
             <a href="{{ url_for('yubikey_setup') }}" class="btn btn-outline-warning">
                 <i class="bi bi-shield-lock me-1"></i> Настроить YubiKey
             </a>
-        <a href="{{ url_for('add_service') }}" class="btn btn-primary">Добавить AI-сервис</a>
+            <a href="{{ url_for('add_service') }}" class="btn btn-primary">Добавить AI-сервис</a>
+            {% if servers %}
+            <button type="button" class="btn btn-outline-danger" onclick="showDeleteAllConfirm()">
+                <i class="bi bi-trash3 me-1"></i> Удалить все сервисы
+            </button>
+            {% endif %}
         </div>
     </div>
 
@@ -52,7 +57,7 @@
       </button>
       <div class="card-carousel-row" id="card-carousel-row">
         {% for server in servers %}
-          <div class="card card-carousel-card" id="carousel-card-{{ loop.index0 }}">
+          <div class="card card-carousel-card" id="carousel-card-{{ loop.index0 }}" data-service-id="{{ server.id }}">
             {% include 'card_content.html' %}
             <div class="card-stack-actions">
                     <div class="d-flex justify-content-between mt-3">
@@ -102,10 +107,46 @@
     </div>
   </div>
 </div>
+
+<!-- Modal для подтверждения удаления всех сервисов -->
+<div class="modal fade" id="deleteAllModal" tabindex="-1" aria-labelledby="deleteAllModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="deleteAllModalLabel">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Удаление всех сервисов
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <strong>Внимание!</strong> Это действие нельзя отменить.
+        </div>
+        <p>Вы действительно хотите удалить <strong>все {{ servers|length }} AI-сервисов</strong>?</p>
+        <p class="text-muted small">Все данные будут безвозвратно удалены из системы.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <form action="{{ url_for('delete_all_services') }}" method="post" style="display: inline;">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash3 me-1"></i> Удалить все сервисы
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+function showDeleteAllConfirm() {
+  const modal = new bootstrap.Modal(document.getElementById('deleteAllModal'));
+  modal.show();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   let activeCardIndex = 0;
   let ignoreScroll = false;
@@ -127,6 +168,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   setActiveCard(activeCardIndex);
+  // Если фронт получил highlight_id в query-параметрах, проскроллим к соответствующему сервису
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const highlightId = params.get('highlight_id');
+    if (highlightId) {
+      const cards = Array.from(document.querySelectorAll('.card-carousel-card'));
+      const idx = cards.findIndex(c => String(c.getAttribute('data-service-id')) === String(highlightId));
+      if (idx >= 0) {
+        activeCardIndex = idx;
+        setActiveCard(activeCardIndex);
+        ignoreScroll = true;
+        cards[activeCardIndex].scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
+        setTimeout(() => { ignoreScroll = false; }, 300);
+        // Короткая подсветка карточки
+        cards[activeCardIndex].classList.add('border', 'border-3', 'border-primary');
+        setTimeout(() => {
+          cards[activeCardIndex]?.classList.remove('border-3', 'border-primary');
+        }, 1500);
+      }
+    }
+  } catch (e) {}
   const carousel = document.getElementById('card-carousel-row');
   const indicators = document.querySelectorAll('.carousel-indicator-dot');
   if (carousel) {
@@ -197,6 +259,30 @@ document.addEventListener('DOMContentLoaded', function() {
     } else if (e.key === 'ArrowRight') {
       window.carouselScroll('right');
     }
+  });
+
+  // Показать/скрыть пароль для доп. аккаунтов
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.toggle-password-btn');
+    if (!btn) return;
+    let val = btn.getAttribute('data-password');
+    try { val = JSON.parse(val); } catch (_) {}
+    if (!val) return;
+    // Временно показать пароль во всплывающем тултипе
+    const prevTitle = btn.getAttribute('data-bs-original-title') || btn.getAttribute('title') || '';
+    const instance = bootstrap.Tooltip.getOrCreateInstance(btn, { container: 'body', boundary: 'viewport', placement: 'top', offset: [0, 4], popperConfig: { strategy: 'fixed' } });
+    btn.setAttribute('data-bs-original-title', val);
+    if (typeof instance.setContent === 'function') {
+      instance.setContent({ '.tooltip-inner': val });
+    }
+    try { instance.show(); } catch(_) {}
+    setTimeout(() => {
+      btn.setAttribute('data-bs-original-title', prevTitle);
+      if (typeof instance.setContent === 'function') {
+        instance.setContent({ '.tooltip-inner': prevTitle || '' });
+      }
+      try { instance.hide(); } catch(_) {}
+    }, 1200);
   });
 });
 </script>

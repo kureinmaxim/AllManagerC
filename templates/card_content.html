@@ -130,7 +130,7 @@
     </div>
 
     <div class="accordion accordion-flush" id="accordion-{{ server.id }}">
-        {% if server.credentials %}
+        {% if server.credentials or server.credentials_list %}
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-credentials-{{ server.id }}">
@@ -138,16 +138,14 @@
                 </button>
             </h2>
             <div id="collapse-credentials-{{ server.id }}" class="accordion-collapse collapse" data-bs-parent="#accordion-{{ server.id }}">
-            </div>
-            <div class="accordion-body py-2">
+                <div class="accordion-body py-2">
                 {% if selected_oauth %}
-                <div class="alert alert-info mb-3">
+                <div class="alert alert-info mb-2 py-2 px-3 small" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
                     <i class="bi bi-shield-check me-2"></i>
-                    <strong>OAuth авторизация:</strong> {{ selected_oauth.name }}<br>
-                    <small>Используйте email ниже для выбора аккаунта.</small>
+                    <strong>OAuth:</strong> {{ selected_oauth.name }} — используйте email ниже.
                 </div>
                 {% endif %}
-                {% if server.credentials.username_decrypted %}
+                {% if server.credentials and server.credentials.username_decrypted %}
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <small>Email для входа:</small>
                     <div class="input-group input-group-sm w-auto">
@@ -156,7 +154,7 @@
                     </div>
                 </div>
                 {% endif %}
-                {% if not selected_oauth and server.credentials.password_decrypted %}
+                {% if not selected_oauth and server.credentials and server.credentials.password_decrypted %}
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <small>Пароль:</small>
                     <div class="input-group input-group-sm w-auto">
@@ -165,9 +163,37 @@
                     </div>
                 </div>
                 {% endif %}
-                <div class="mb-3">
-                    <small class="text-muted">Дополнительная информация:</small>
-                    <pre class="additional-info-content mt-1">{% if server.credentials.additional_info_decrypted %}{{ server.credentials.additional_info_decrypted }}{% else %}<span class="text-muted">Нет дополнительной информации</span>{% endif %}</pre>
+
+
+                {% if server.credentials and server.credentials.additional_info_decrypted %}
+                <pre class="additional-info-content mt-1">{{ server.credentials.additional_info_decrypted }}</pre>
+                {% endif %}
+                {% if server.credentials_list and server.credentials_list|length > 0 %}
+                <div class="mt-3">
+                    <small class="text-muted d-block mb-2">Дополнительные аккаунты:</small>
+                    <div class="list-group list-group-flush">
+                        {% for cred in server.credentials_list %}
+                        <div class="list-group-item px-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="small text-truncate" style="max-width: 70%;">
+                                    <i class="bi bi-person me-2"></i>{{ cred.username_decrypted or '—' }}
+                                </div>
+                                <div class="btn-group btn-group-sm credential-actions" role="group" style="position: relative;">
+                                    {% if cred.username_decrypted %}
+                                    <button class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Скопировать email" data-copy-text='{{ cred.username_decrypted|tojson }}'><i class="bi bi-clipboard"></i></button>
+                                    {% endif %}
+                                    {% if cred.password_decrypted %}
+                                    <button class="btn btn-outline-secondary toggle-password-btn" type="button" data-password='{{ cred.password_decrypted|tojson }}' title="Показать пароль"><i class="bi bi-eye"></i></button>
+                                    <button class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="Скопировать пароль" data-copy-text='{{ cred.password_decrypted|tojson }}'><i class="bi bi-clipboard"></i></button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
                 </div>
             </div>
         </div>
@@ -202,6 +228,20 @@
                         <p class="small mt-1">{{ server.subscription.notes }}</p>
                     </div>
                     {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if server.notes %}
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-notes-{{ server.id }}">
+                    <i class="bi bi-journal-text me-2"></i>Заметки
+                </button>
+            </h2>
+            <div id="collapse-notes-{{ server.id }}" class="accordion-collapse collapse" data-bs-parent="#accordion-{{ server.id }}">
+                <div class="accordion-body py-2">
+                    <pre class="small mt-1 mb-0" style="white-space: pre-wrap;">{{ server.notes }}</pre>
                 </div>
             </div>
         </div>

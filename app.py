@@ -2,6 +2,7 @@ import json
 import os
 import sys
 from pathlib import Path
+from runtime_paths import packaged_data_dir
 from datetime import date, datetime
 import uuid
 from flask import Flask, render_template, request, redirect, url_for, make_response, send_from_directory, jsonify, flash, abort, session, send_file
@@ -46,6 +47,13 @@ def load_env_file():
     from pathlib import Path
     import os
     
+    if getattr(sys, 'frozen', False):
+        env_path = packaged_data_dir() / '.env'
+        if env_path.is_file():
+            load_dotenv(env_path)
+            return True
+        return False
+
     # Список возможных путей к .env файлу
     possible_paths = []
     
@@ -89,31 +97,12 @@ def load_env_file():
                 print(f"🔍 Проверяем путь: {env_path} {'✅' if env_path.exists() else '❌'}")
                 if env_path.exists():
                     print(f"📁 Найден .env файл: {env_path}")
-                    print(f"📄 Содержимое .env файла:")
-                    try:
-                        with open(env_path, 'r', encoding='utf-8') as f:
-                            content = f.read().strip()
-                            print(f"   {content}")
-                    except Exception as e:
-                        print(f"   ❌ Ошибка чтения файла: {e}")
-                    
                     load_dotenv(env_path)
-                    
-                    # Проверяем, загрузились ли переменные
-                    static_passwords = os.getenv('YUBIKEY_STATIC_PASSWORDS')
-                    print(f"🔑 YUBIKEY_STATIC_PASSWORDS: {repr(static_passwords)}")
-                    
                     return True
     
     print(f"❌ .env файл не найден в следующих местах:")
     for path in possible_paths:
         print(f"   - {path} {'✅' if path.exists() else '❌'}")
-    
-    # Показываем все переменные окружения для отладки
-    print(f"🔍 Все переменные окружения:")
-    for key, value in os.environ.items():
-        if 'YUBIKEY' in key or 'SECRET' in key:
-            print(f"   {key}: {repr(value)}")
     
     return False
 
@@ -133,6 +122,12 @@ def get_app_data_dir():
     Возвращает директорию для хранения пользовательских данных приложения.
     Учитывает различие между режимом разработки и запакованным приложением.
     """
+    if getattr(sys, 'frozen', False):
+        directory = packaged_data_dir()
+        (directory / 'data').mkdir(parents=True, exist_ok=True)
+        (directory / 'uploads').mkdir(exist_ok=True)
+        return str(directory)
+
     # Определяем, запущено ли приложение как пакет
     is_frozen = getattr(sys, 'frozen', False)
     
@@ -406,7 +401,7 @@ def enforce_authentication_dynamic():
     try:
         # Разрешённые эндпоинты без входа (включая скрытый PIN-вход)
         allowed_endpoints = {
-            'yubikey_login', 'yubikey_instructions', 'yubikey_setup', 'yubikey_remove_key',
+            'yubikey_login', 'yubikey_instructions',
             'secret_login', 'change_secret_pin',
             'static', 'help_page', 'about_page', 'set_clipboard', 'shutdown'
         }
@@ -422,8 +417,8 @@ def enforce_authentication_dynamic():
 
         # Если ключей нет — разрешаем только настройки/мастер и статику
         try:
-            if len(yubikey_auth.get_keys()) == 0:
-                if ep in {'yubikey_setup', 'settings_page', 'static'}:
+            if len(yubikey_auth.get_keys()) == 0 and not yubikey_auth.static_passwords:
+                if ep in {'yubikey_setup', 'static', 'secret_login', 'yubikey_login'}:
                     return None
                 session.pop('yubikey_authenticated', None)
                 return redirect('/yubikey/setup')
@@ -443,7 +438,7 @@ is_frozen = getattr(sys, 'frozen', False)
 if is_frozen:
     # Если приложение собрано, ищем .env в платформа-зависимых местах
     try:
-        dotenv_candidates = []
+        dotenv_candidates = [Path(APP_DATA_DIR) / ".env"]
         if sys.platform == 'win32':
             # Основное место для Windows: директория данных пользователя
             dotenv_candidates.append(Path(APP_DATA_DIR) / '.env')
@@ -484,8 +479,9 @@ if not SECRET_KEY:
             # Для разработки сохраняем в корне проекта
             env_file = '.env'
         
-        with open(env_file, 'w') as f:
-            f.write(f'SECRET_KEY={new_key}\n')
+        with open(env_file, 'a') as f:
+            f.write(f'\nSECRET_KEY={new_key}\n')
+        os.environ["SECRET_KEY"] = new_key
         
         print(f"✅ Создан новый ключ шифрования: {env_file}")
     except Exception as e:
@@ -494,6 +490,25 @@ if not SECRET_KEY:
         SECRET_KEY = Fernet.generate_key().decode()
 
 fernet = Fernet(SECRET_KEY.encode())
+
+def collect_extra_credentials(form, existing=()):
+    """Encrypt submitted accounts, retaining an unchanged password by original index."""
+    usernames = form.getlist('extra_username[]')
+    passwords = form.getlist('extra_password[]')
+    indices = form.getlist('extra_index[]')
+    result = []
+    for i, username in enumerate(usernames):
+        password = passwords[i] if i < len(passwords) else ''
+        index = indices[i] if i < len(indices) else ''
+        previous = existing[int(index)] if index.isdigit() and int(index) < len(existing) else {}
+        if not username and not password and not previous:
+            continue
+        credential = {key: value for key, value in previous.items() if not key.endswith('_decrypted')}
+        credential['username'] = encrypt_data(username)
+        credential['password'] = encrypt_data(password) if password else previous.get('password', '')
+        result.append(credential)
+    return result
+
 
 def encrypt_data(data):
     if not data:
@@ -577,6 +592,9 @@ def get_active_data_path():
     """Возвращает полный путь к активному файлу данных из конфигурации."""
     path = app.config.get('active_data_file')
     if path:
+        local_candidate = os.path.join(APP_DATA_DIR, 'data', str(path).replace('\\', '/').rsplit('/', 1)[-1])
+        if not os.path.exists(path) and os.path.isfile(local_candidate):
+            return local_candidate
         # Если путь относительный, сделать его абсолютным относительно APP_DATA_DIR
         if not os.path.isabs(path):
             return os.path.join(APP_DATA_DIR, path)
@@ -722,6 +740,17 @@ def load_ai_services():
                 server["credentials"]["password_decrypted"] = decrypt_data(server["credentials"].get("password", ""))
                 server["credentials"]["additional_info_decrypted"] = decrypt_data(server["credentials"].get("additional_info", ""))
 
+            # Расшифровываем дополнительные учетные данные (credentials_list)
+            if "credentials_list" in server and isinstance(server["credentials_list"], list):
+                for cred in server["credentials_list"]:
+                    try:
+                        if isinstance(cred, dict):
+                            cred["username_decrypted"] = decrypt_data(cred.get("username", ""))
+                            cred["password_decrypted"] = decrypt_data(cred.get("password", ""))
+                            cred["additional_info_decrypted"] = decrypt_data(cred.get("additional_info", ""))
+                    except Exception:
+                        continue
+
             if 'receipts' in server.get('payment_info', {}):
                 # Сортировка чеков по дате загрузки (от новых к старым)
                 server['payment_info']['receipts'].sort(key=lambda r: r.get('upload_date', ''), reverse=True)
@@ -758,6 +787,13 @@ def save_ai_services(servers):
             server['credentials'].pop('username_decrypted', None)
             server['credentials'].pop('password_decrypted', None)
             server['credentials'].pop('additional_info_decrypted', None)
+        # Удаляем расшифрованные поля из дополнительных учетных данных
+        if 'credentials_list' in server and isinstance(server['credentials_list'], list):
+            for cred in server['credentials_list']:
+                if isinstance(cred, dict):
+                    cred.pop('username_decrypted', None)
+                    cred.pop('password_decrypted', None)
+                    cred.pop('additional_info_decrypted', None)
         
         # Удаляем другие временные поля, созданные для UI
         server.pop('hosting_analysis', None)
@@ -823,6 +859,33 @@ def re_encrypt_service_data(service, external_fernet, current_fernet):
             # В случае ошибки с секцией, продолжаем обработку других полей
             continue
     
+    # Обрабатываем список дополнительных учетных данных
+    try:
+        if 'credentials_list' in service_copy and isinstance(service_copy['credentials_list'], list):
+            new_list = []
+            for cred in service_copy['credentials_list']:
+                if not isinstance(cred, dict):
+                    continue
+                new_cred = dict(cred)
+                for key in ['username', 'password', 'additional_info']:
+                    try:
+                        value = cred.get(key)
+                        if value:
+                            # Пытаемся расшифровать внешним ключом и зашифровать текущим
+                            decrypted = external_fernet.decrypt(value.encode()).decode()
+                            new_cred[key] = current_fernet.encrypt(decrypted.encode()).decode()
+                    except Exception:
+                        # Если не удалось — оставляем как есть (возможно уже текущий ключ)
+                        pass
+                # Убираем временные расшифрованные ключи, если были
+                new_cred.pop('username_decrypted', None)
+                new_cred.pop('password_decrypted', None)
+                new_cred.pop('additional_info_decrypted', None)
+                new_list.append(new_cred)
+            service_copy['credentials_list'] = new_list
+    except Exception:
+        pass
+
     return service_copy
 
 
@@ -1147,6 +1210,8 @@ def add_service():
                 "password": encrypt_data(request.form.get('password')),
                 "additional_info": encrypt_data(request.form.get('additional_info'))
             },
+            # Список дополнительных учетных данных (массив)
+            "credentials_list": [],
             "subscription": {
                 "plan_name": request.form.get('plan_name'),
                 "cost_monthly": float(request.form.get('cost_monthly')) if request.form.get('cost_monthly') else 0.0,
@@ -1203,6 +1268,7 @@ def add_service():
                 new_service['icon_filename'] = unique_filename
 
         services.append(new_service)
+        new_service['credentials_list'] = collect_extra_credentials(request.form)
         save_ai_services(services)
         flash('AI-сервис успешно добавлен!', 'success')
         return redirect('/')
@@ -1279,6 +1345,41 @@ def delete_service(service_id):
     return redirect('/')
 
 
+@app.route('/delete-all-services', methods=['POST'])
+@yubikey_auth.require_auth if yubikey_auth else (lambda f: f)
+def delete_all_services():
+    """Удаляет все AI-сервисы с подтверждением"""
+    try:
+        services = load_ai_services()
+
+        if not services:
+            flash('Нет сервисов для удаления.', 'info')
+            return redirect(url_for('index'))
+
+        # Удаляем все иконки
+        for service in services:
+            if service.get('icon_filename'):
+                try:
+                    os.remove(os.path.join(app.config['UPLOAD_FOLDER'], service['icon_filename']))
+                except OSError as e:
+                    print(f"Ошибка при удалении иконки {service['icon_filename']}: {e}")
+
+        # Очищаем список сервисов
+        save_ai_services([])
+
+        flash(f'Все {len(services)} AI-сервисов успешно удалены.', 'success')
+
+        # Логируем событие
+        log_security_event('delete_all_services', f'Удалено {len(services)} сервисов')
+
+    except Exception as e:
+        print(f"Ошибка при удалении всех сервисов: {e}")
+        flash('Произошла ошибка при удалении сервисов.', 'danger')
+
+    return redirect(url_for('index'))
+
+
+
 @app.route('/edit/<service_id>', methods=['GET', 'POST'])
 @yubikey_auth.require_auth if yubikey_auth else (lambda f: f)
 def edit_service(service_id):
@@ -1340,6 +1441,7 @@ def edit_service(service_id):
         if request.form.get('password'): # Обновляем пароль, только если он был введен
             service['credentials']['password'] = encrypt_data(request.form.get('password'))
         service['credentials']['additional_info'] = encrypt_data(request.form.get('additional_info'))
+        service['credentials_list'] = collect_extra_credentials(request.form, service.get('credentials_list', []))
 
         # Обновление подписки
         service['subscription'] = {
@@ -1406,7 +1508,7 @@ def edit_service(service_id):
 
         save_ai_services(services)
         flash('AI-сервис успешно обновлен!', 'success')
-        return redirect('/')
+        return redirect(url_for('index', highlight_id=service['id']))
 
     # Для GET запроса
     # Загружаем схему для динамического формирования полей формы
@@ -1915,7 +2017,7 @@ def check_ip(ip_address):
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Не удалось подключиться к сервису: {e}"}), 500
 
-@app.route('/settings')
+@app.route('/settings/change-key', methods=['POST'])
 @yubikey_auth.require_auth if yubikey_auth else (lambda f: f)
 def change_main_key():
     """Смена главного ключа с перешифровкой всех данных."""
@@ -1944,6 +2046,14 @@ def change_main_key():
         
         # Загружаем текущие данные с существующим ключом
         current_servers = load_ai_services()
+        current_servers = [re_encrypt_service_data(item, fernet, test_fernet) for item in current_servers]
+        def remove_display_fields(value):
+            if isinstance(value, dict):
+                return {k: remove_display_fields(v) for k, v in value.items() if not k.endswith('_decrypted')}
+            if isinstance(value, list):
+                return [remove_display_fields(v) for v in value]
+            return value
+        current_servers = remove_display_fields(current_servers)
         
         # Создаем резервную копию с временной меткой
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -2009,6 +2119,7 @@ def change_main_key():
         try:
             # Обновляем глобальные переменные СНАЧАЛА
             SECRET_KEY = new_key
+            os.environ['SECRET_KEY'] = new_key
             fernet = Fernet(new_key.encode())
             
             # Перешифровываем данные с новым ключом
@@ -2052,7 +2163,7 @@ def change_main_key():
     
     return redirect('/settings')
 
-@app.route('/settings')
+@app.route('/settings/verify-key-data', methods=['POST'])
 @yubikey_auth.require_auth if yubikey_auth else (lambda f: f)
 def verify_key_data():
     """Проверка соответствия ключа и данных без импорта."""
@@ -2119,7 +2230,7 @@ def verify_key_data():
     
     return redirect('/settings')
 
-@app.route('/settings')
+@app.route('/settings/generate-key', methods=['POST'])
 @yubikey_auth.require_auth if yubikey_auth else (lambda f: f)
 def generate_new_key():
     """Генерация нового случайного ключа Fernet."""
@@ -2221,7 +2332,8 @@ def create_default_schema():
         print(f"❌ Ошибка создания схемы данных: {e}")
 
 # Вызываем создание схемы при старте приложения
-create_default_schema()
+if not is_frozen and not Path('ai_services_schema.json').exists():
+    create_default_schema()
 
 # Добавляем фильтры и тесты для Jinja2
 def regex_replace(s, find, replace):

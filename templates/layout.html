@@ -2,6 +2,7 @@
 <html lang="ru" data-bs-theme="{{ request.cookies.get('theme', 'dark') }}">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ url_for('static', filename='images/icon.ico') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AI Services Manager{% endblock %}</title>
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
@@ -12,7 +13,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="bi bi-robot"></i> AllManagerC
+                <img src="{{ url_for('static', filename='images/ALLc.png') }}" width="28" height="28" alt=""> AllManagerC
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

@@ -8,10 +8,12 @@ import os
 import sys
 from datetime import datetime
 from pathlib import Path
+from runtime_paths import packaged_data_dir
 
 # Добавлена кроссплатформенная функция определения директории данных приложения
 def _resolve_app_data_dir() -> Path:
     if getattr(sys, 'frozen', False):
+        return packaged_data_dir()
         if sys.platform == 'win32':
             return Path(os.environ.get('APPDATA', str(Path.home()))) / 'AllManagerC'
         elif sys.platform == 'darwin':

@@ -172,8 +172,8 @@ def print_recommendations():
     
     print("\n  📖 Полезные ссылки:")
     print("    - README.md - Главная документация")
-    print("    - CROSS_PLATFORM_GUIDE.md - Работа на разных ОС")
-    print("    - QUICK_RELEASE_GUIDE.md - Создание релиза")
+    print("    - DEPLOYMENT.md - Работа на разных ОС")
+    print("    - BUILD_MACOS.md - Сборка macOS и создание релиза")
 
 def main():
     """Основная функция"""

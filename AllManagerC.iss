@@ -1,5 +1,5 @@
 #define MyAppName "AllManagerC"
-#define MyAppVersion "5.6.0"
+#define MyAppVersion "6.0.0"
 #define MyAppPublisher "AI Manager Team"
 #define MyAppURL "https://example.local"
 #define MyAppExeName "AllManagerC.exe"
@@ -73,5 +73,4 @@ begin
       SaveStringToFile(yk, '{\n  "keys": [],\n  "enabled": true,\n  "allowed_public_ids": []\n}', False);
   end;
 end;
-
 

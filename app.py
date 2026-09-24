@@ -278,10 +278,10 @@ if 'app_info' not in app.config:
     try:
         with open('config.json', 'r', encoding='utf-8') as f:
             config = json.load(f)
-            version = config.get('app_info', {}).get('version', '5.6.0')
+            version = config.get('app_info', {}).get('version', '6.0.0')
             developer = config.get('app_info', {}).get('developer', 'AI Manager Team')
     except:
-        version = '5.6.0'
+        version = '6.0.0'
         developer = 'AI Manager Team'
     app.config['app_info'] = {
         "version": "N/A",

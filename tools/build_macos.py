@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import platform
+import plistlib
 import shutil
 import subprocess
 import sys
@@ -54,6 +55,13 @@ def main():
             '--hidden-import=webview.platforms.cocoa', '--hidden-import=yubico_client',
             '--exclude-module=PyQt5', '--exclude-module=PyQt6',
             '--exclude-module=PySide2', '--exclude-module=PySide6', ROOT / 'app.py', cwd=ROOT)
+        plist_path = app / 'Contents' / 'Info.plist'
+        with plist_path.open('rb') as stream:
+            metadata = plistlib.load(stream)
+        metadata.update(CFBundleShortVersionString=version, CFBundleVersion=version)
+        with plist_path.open('wb') as stream:
+            plistlib.dump(metadata, stream)
+        run('codesign', '--force', '--deep', '--sign', '-', app)
         run('codesign', '--verify', '--deep', '--strict', app)
         print(f'APP: {app}', flush=True)
     if args.stage in ('dmg', 'all'):

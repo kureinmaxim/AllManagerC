@@ -29,7 +29,7 @@ and move your records between installations with encrypted exports.
 
 Built with **Python, Flask and PyWebView**. Data lives on your computer; there is no
 AllManagerC cloud account to create. YubiKey OTP verification requires internet.
-The application interface is currently in **Russian**.
+Russian is the default interface language. English and Simplified Chinese translations are in progress.
 
 <p align="center">
   <img src="docs/images/service-board.png" alt="AllManagerC service cards with fictional accounts and subscription details" width="960">
@@ -49,9 +49,9 @@ The application interface is currently in **Russian**.
 ## Get the app
 
 [Published installers](https://github.com/kureinmaxim/AllManagerC/releases) include
-Windows and macOS builds for the current **v6.0.0 release**.
+Windows and macOS builds from the older **v5.6.0 release**. Version **6.0.0** is available in source; its installers have not yet been published as a GitHub Release.
 
-The interface supports Russian, English, and Simplified Chinese. Use the translate icon in the top bar to switch languages; the choice is remembered locally.
+Use the translate icon in the top bar to switch between Russian, English, and Simplified Chinese; the choice is remembered locally. English and Chinese currently cover core navigation and service-card labels; untranslated text falls back to Russian.
 
 The release includes the consolidated codebase and the multilingual interface.
 

@@ -38,14 +38,14 @@ python3 -m venv .venv
 Выберите новую папку результата; существующее приложение не перезаписывается:
 
 ```bash
-bash build_macos.sh --stage app --output dist/macos-arm64-20260923
+bash build_macos.sh --stage app --output dist/macos-arm64-v6.0.0-final
 ```
 
 Для следующей сборки укажите другое имя папки. Можно выполнить оба этапа сразу
 командой `bash build_macos.sh`: скрипт сам создаст папку с датой и временем.
 Для другого Python задайте `BUILD_PYTHON=/путь/к/python` перед командой.
 
-Результат — `dist/macos-arm64-20260923/AllManagerC.app`.
+Результат — `dist/macos-arm64-v6.0.0-final/AllManagerC.app`.
 
 Скрипт `tools/build_macos.py`:
 
@@ -62,14 +62,14 @@ bash build_macos.sh --stage app --output dist/macos-arm64-20260923
 ## 4. Проверить запуск
 
 ```bash
-open dist/macos-arm64-20260923/AllManagerC.app
+open dist/macos-arm64-v6.0.0-final/AllManagerC.app
 ```
 
 Для проверки с отдельными пустыми данными можно запустить исполняемый файл:
 
 ```bash
 ALLMANAGERC_DATA_DIR=/tmp/allmanagerc-test-profile \
-  dist/macos-arm64-20260923/AllManagerC.app/Contents/MacOS/AllManagerC
+  dist/macos-arm64-v6.0.0-final/AllManagerC.app/Contents/MacOS/AllManagerC
 ```
 
 Обычный запуск хранит данные и ключ в
@@ -82,7 +82,7 @@ ALLMANAGERC_DATA_DIR=/tmp/allmanagerc-test-profile \
 После проверки приложения, с той же папкой результата:
 
 ```bash
-bash build_macos.sh --stage dmg --output dist/macos-arm64-20260923
+bash build_macos.sh --stage dmg --output dist/macos-arm64-v6.0.0-final
 ```
 
 Результат: `AllManagerC_Installer_v6.0.0_arm64.dmg` и файл `.dmg.sha256` рядом.
@@ -94,11 +94,11 @@ bash build_macos.sh --stage dmg --output dist/macos-arm64-20260923
 
 ```bash
 hdiutil create -volname 'AllManagerC 6.0.0' \
-  -srcfolder dist/macos-arm64-20260923/dmg-content \
+  -srcfolder dist/macos-arm64-v6.0.0-final/dmg-content \
   -format UDZO -fs HFS+ \
-  dist/macos-arm64-allmanagerc-i18n/AllManagerC_Installer_v6.0.0_arm64.dmg
-hdiutil verify dist/macos-arm64-allmanagerc-i18n/AllManagerC_Installer_v6.0.0_arm64.dmg
-shasum -a 256 dist/macos-arm64-allmanagerc-i18n/AllManagerC_Installer_v6.0.0_arm64.dmg
+  dist/macos-arm64-v6.0.0-final/AllManagerC_Installer_v6.0.0_arm64.dmg
+hdiutil verify dist/macos-arm64-v6.0.0-final/AllManagerC_Installer_v6.0.0_arm64.dmg
+shasum -a 256 dist/macos-arm64-v6.0.0-final/AllManagerC_Installer_v6.0.0_arm64.dmg
 ```
 
 ## 6. Установка

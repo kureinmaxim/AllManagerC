@@ -1,57 +1,65 @@
 # AllManagerC Project Structure
 
-AllManagerC is a local desktop application for securely managing AI service accounts, subscriptions, and provider credentials. The repository contains the application, packaging scripts, tests, and release documentation.
+AllManagerC is a local desktop application for managing AI service accounts and provider credentials. The repository contains the application, packaging workflows, tests, and focused documentation.
 
-## Top-level layout
+## Repository layout
 
 ```text
 AllManagerC/
-├── app.py                         # Flask routes and desktop application entry point
-├── run_app.py                     # Development launcher
-├── config.json                    # Canonical application metadata and non-secret defaults
-├── app_version.py                 # Generated version constant
-├── ai_services_schema.json        # Service data validation schema
-├── translations/                  # English and Simplified Chinese UI catalogs
-├── templates/                     # HTML templates
-├── static/                        # CSS, JavaScript, images, and the application icon
-├── data/                          # Local development data (never commit real data)
-├── uploads/                       # Local development uploads (never commit real files)
-├── tests/                         # Unit, integration, localization, and startup tests
-├── scripts/version.py             # Version status, synchronization, and bump commands
-├── build_macos.sh                 # macOS build entry point
-├── build_macos.command            # Finder double-click macOS build entry point
-├── tools/build_macos.py           # macOS app and DMG builder
-├── build_windows.py               # Windows app and installer builder
-├── AllManagerC.iss                # Inno Setup configuration
-├── BUILD_MACOS.md                 # macOS build instructions
-├── BUILD_WINDOWS.md               # Windows build instructions
-├── DEPLOYMENT.md                  # Installation and cross-platform operation
-├── VERSION_MANAGEMENT.md          # Versioning and release rules
-├── SECURITY.md                    # Security policy and limitations
-├── SECURITY_ru.md                 # Russian security policy
-├── АУТЕНТИФИКАЦИЯ.md              # Authentication details in Russian
-└── dist/                          # Generated installers; do not commit
+├── app.py, run_app.py              # Flask routes and desktop launcher
+├── config.json                     # Canonical metadata and non-secret defaults
+├── app_version.py                  # Generated version constant
+├── ai_services_schema.json         # Data validation schema
+├── templates/                      # HTML templates
+├── static/                         # CSS, JavaScript, images, icons
+├── translations/                   # English and Simplified Chinese catalogs
+├── tests/                          # Automated tests
+├── scripts/version.py              # Version status, bump, and synchronization
+├── build_macos.sh                  # macOS command-line build
+├── build_macos.command             # macOS Finder launcher
+├── tools/build_macos.py            # macOS app and DMG workflow
+├── build_windows.py                # Windows app and installer workflow
+├── AllManagerC.iss                 # Inno Setup configuration
+├── BUILD_MACOS.md                  # macOS build instructions
+├── BUILD_WINDOWS.md                # Windows build instructions
+├── DEPLOYMENT.md                   # Installation and runtime notes
+├── VERSION_MANAGEMENT.md           # Version and release rules
+├── SECURITY.md                     # English security policy
+├── SECURITY_ru.md                  # Russian security policy
+├── docs/
+│   ├── guides/                     # Current YubiKey and security checklists
+│   ├── lessons/                    # Historical development lessons
+│   └── images/                     # Documentation images
+├── build/                          # Temporary build work files
+└── dist/                           # Generated installers and latest pointers
 ```
 
-## Runtime boundaries
+`data/`, `uploads/`, `.env`, `yubikey_config.json`, and `logs/` may exist during local development. They contain user data or secrets and must never be committed or packaged.
 
-The application stores user data outside the source tree when packaged:
+## Runtime data
+
+Packaged builds store data outside the repository:
 
 - macOS: `~/Library/Application Support/AllManagerC`
 - Windows: `%APPDATA%\AllManagerC`
 - Linux: `~/.local/share/AllManagerC`
 
-The data directory contains encrypted service data, the encryption key in `.env`, YubiKey configuration, uploads, and security logs. These files are user-owned and must never be copied into an installer or committed to Git.
+The profile contains encrypted service data, its matching Fernet key, YubiKey settings, uploads, and security logs. Keep the encrypted file and its key together when making backups.
 
-## Build boundaries
+## Build outputs
 
-Build scripts create temporary files under `build/` and versioned output under `dist/`. The latest successful output is exposed as `dist/latest` on macOS and Windows. Old builds can be removed with the platform-specific `--clean` command while preserving the latest result.
+Both platform builders read the version from `config.json` and create a new versioned directory under `dist`.
 
-The macOS builder creates a signed local `.app` and a DMG. The Windows builder creates a PyInstaller application directory and an Inno Setup installer. Neither build is notarized or code-signed with a commercial certificate by default.
+- macOS exposes the latest successful result as `dist/latest` and the latest app-only result as `dist/latest-app`.
+- Windows keeps a copy of the latest successful result in `dist/latest`.
+- `--clean` removes old generated results while preserving the latest result.
+- `--clean-all` removes every generated result.
+
+Builds include application code and static resources only. Personal profiles, databases, keys, and environment files are excluded. macOS uses a local ad-hoc signature; Windows uses Inno Setup and does not use a commercial certificate by default.
 
 ## Version source
 
-`config.json` is the canonical version source. Run the version tool from the repository root:
+`config.json` is the canonical version source. Use the version tool from the repository root:
 
 ```bash
 python3 scripts/version.py status
@@ -59,18 +67,16 @@ python3 scripts/version.py bump patch
 python3 scripts/version.py check
 ```
 
-The tool synchronizes `app_version.py`, `AllManagerC.iss`, and the version badges in both README files. Do not edit generated version markers independently.
+It synchronizes `app_version.py`, `AllManagerC.iss`, and README version badges. See [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md) for release tags and CI checks.
 
-## Documentation ownership
+## Documentation map
 
-Use the focused document for each task:
+- [README](README.md): product overview and user quick start.
+- [BUILD_MACOS](BUILD_MACOS.md) and [BUILD_WINDOWS](BUILD_WINDOWS.md): packaging.
+- [DEPLOYMENT](DEPLOYMENT.md): installation and platform data locations.
+- [SECURITY](SECURITY.md): threat model, limitations, and reporting.
+- [Authentication](АУТЕНТИФИКАЦИЯ.md): authentication behavior and recovery.
+- [YubiKey guide](docs/guides/YUBIKEY_QUICK_START.md): practical YubiKey setup.
+- `docs/lessons/`: historical development material; it is not a runtime dependency.
 
-- `README.md`: product overview and user quick start.
-- `BUILD_MACOS.md`: macOS packaging and DMG workflow.
-- `BUILD_WINDOWS.md`: Windows packaging and Inno Setup workflow.
-- `DEPLOYMENT.md`: installation, runtime locations, and cross-platform notes.
-- `SECURITY.md`: security model, limitations, and vulnerability reporting.
-- `docs/guides/YUBIKEY_QUICK_START.md`: YubiKey setup reference.
-- `VERSION_MANAGEMENT.md`: version synchronization and release tags.
-
-Keep documentation in English unless a file is explicitly marked as a Russian companion. Do not put secrets, real database files, personal backups, or machine-specific paths into documentation.
+Keep documentation free of real credentials, personal paths, database contents, and machine-specific secrets.

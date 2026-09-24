@@ -1,144 +1,127 @@
-# Безопасность AllManagerC
+# Security policy
 
-Документ описывает текущий код ветки `main`, а не обещание независимого аудита.
-Актуализирован 23 сентября 2026. AllManagerC предназначен для локального запуска
-на доверенном компьютере. Поддержка публичного многопользовательского сервера
-не заявлена.
+Language: **English** · [Русский](SECURITY_ru.md)
 
-## Сообщить о проблеме
+AllManagerC is a local desktop application for a trusted computer. This policy
+describes the current `main` implementation; it does not claim independent security
+certification or support for a public multi-user service.
 
-Не публикуйте ключи, пароли, реальные базы, экспортные архивы или подробности
-эксплуатации в общедоступном Issue.
+## Report a vulnerability
 
-Проверьте раздел Security репозитория
-[AllManagerC](https://github.com/kureinmaxim/AllManagerC/security).
-Если доступна кнопка **Report a vulnerability**, используйте приватное сообщение.
-Наличие этой функции в настройках репозитория не подтверждено данным документом.
-Если её нет, создайте обычный Issue с просьбой предоставить приватный канал,
-без описания эксплуатации и конфиденциальных вложений.
+Do not include credentials, real databases, exports or exploitation details in a
+public issue. Check the repository's [Security page](https://github.com/kureinmaxim/AllManagerC/security).
+If **Report a vulnerability** is available, use that private channel. Its availability
+is not assumed here. Otherwise, open an issue requesting a private contact method
+without disclosing sensitive details.
 
-Для приватного сообщения подготовьте версию или хеш коммита, ОС, шаги воспроизведения
-на тестовых данных, ожидаемое поведение и предполагаемое влияние.
+A private report should include the commit hash, OS, reproduction steps with synthetic
+records, expected behavior and likely impact. No dedicated security email, PGP key,
+response-time commitment or bounty program has been established.
 
-Выделенный email, PGP-ключ, сроки ответа и программа вознаграждений в проекте
-не установлены. Старые `security@example.com`, шаблон CVE и обещания сроков удалены
-как недостоверные сведения.
+## Versions and verification
 
-## Версии и проверки
-
-Текущие изменения ведутся в `main`. Политика поддержки старых веток и сроки выпуска
-исправлений не определены. Значение `5.6.0` в конфигурации не отражает все изменения
-после объединения — в сообщении о проблеме указывайте также хеш коммита.
-
-Регрессионные тесты проверяют отдельные свойства работы с данными и входом:
+Development takes place on `main`. There is no defined maintenance schedule for older
+releases. Configuration still reports `5.6.0` despite subsequent changes; include the
+commit hash in reports.
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Они используют временные каталоги и синтетические данные. Это не полный аудит
-безопасности, проверка всех зависимостей или тестирование физического YubiKey.
-Отдельных `tests/test_security.py` и `tools/test_encryption.py` в проекте нет.
+The regression suite uses temporary profiles and synthetic records. It checks selected
+data-handling and authentication behaviors, not every vulnerability or dependency.
+Physical YubiKey testing and an independent security audit have not been performed
+as part of the consolidation.
 
-## Что защищено и где хранятся секреты
+## Encryption and profile access
 
-Файл базы и отдельные чувствительные поля шифруются через Fernet. При сохранении
-удаляются временные расшифрованные поля дополнительных аккаунтов; смена ключа
-перешифровывает вложенные учётные данные. Ключ готового macOS-приложения сохраняется
-между запусками в пользовательском профиле.
+Fernet encrypts the database file and selected sensitive fields. Display-only
+decrypted account fields are removed before normal persistence. Key rotation
+re-encrypts nested credentials, including additional accounts.
 
-`SECRET_KEY` в `.env` — ключ шифрования базы. `FLASK_SECRET_KEY` — отдельный секрет
-подписи сессии Flask. Это разные назначения, и значения нельзя подменять друг другом.
+- `SECRET_KEY` in `.env` encrypts the database.
+- `FLASK_SECRET_KEY` signs Flask sessions and has a different purpose.
+- YubiKey configuration and PIN values are stored outside the encrypted database.
+- Uploads, including icons and receipts, are ordinary files.
+- YubiKey is used for sign-in; it does not store or unlock the Fernet key.
 
-`.env`, конфигурация YubiKey и PIN в `config.json` не защищены шифрованием базы.
-Загруженные иконки и чеки в `uploads` также хранятся отдельными обычными файлами.
-Доступ к профилю ОС может дать доступ и к данным, и к ключу. YubiKey используется
-для входа; ключ Fernet не хранится на аппаратном устройстве.
+Anyone who can read both the profile and its key can decrypt the records. Logs and
+clipboard contents may also contain sensitive information; comprehensive redaction
+and automatic clipboard clearing are not guaranteed.
 
-Полный ZIP-экспорт содержит зашифрованную базу, открытый ключ в `SECRET_KEY.env`
-и вложения. Сам ZIP не защищён паролем. Обладание таким архивом позволяет
-расшифровать базу. Логи и содержимое буфера обмена также могут содержать
-чувствительные сведения; полная очистка и маскирование не гарантируются.
+**Full ZIP exports contain the encrypted database, its plaintext key in
+`SECRET_KEY.env`, and uploads. The ZIP itself is not password-protected.**
 
-## Ограничения текущего входа
+## Known authentication limitations
 
-- Защита входа настраивается отдельно. Если модуль YubiKey не инициализировался
-  или защита выключена, динамический обработчик пропускает запросы. Некоторые
-  ошибки обработчиков также приводят к продолжению обработки, а не запрету.
-- В коде остаётся резервное значение PIN `1234`. PIN хранится открытым текстом.
-  Не считайте настройку YubiKey устранением доступа через резервный PIN.
-- Для `/secret/login` есть блокировка после трёх неверных попыток на 30 секунд.
-  Счётчик находится в памяти процесса и сбрасывается при перезапуске.
-- В коде есть отдельный `/dev_login` с другой логикой чтения PIN и без собственного
-  ограничения попыток. Его доступность зависит от общего обработчика входа.
-  Смена Secret PIN не гарантирует изменение PIN этого отдельного маршрута.
-- `DEV_PIN` или `DEVELOPER_PIN` из окружения имеют приоритет над Secret PIN в файле.
-  Если переменная задана, смена PIN в интерфейсе не меняет её значение.
-- При отсутствии `FLASK_SECRET_KEY` используется известное значение по умолчанию.
-  Экспортируемый файл ключа тоже содержит фиксированное значение для секрета сессии;
-  при настройке новой установки задавайте собственный случайный секрет.
+- If the authentication module fails to initialize or protection is disabled, the
+  dynamic request guard permits requests. Some exception paths also continue processing.
+- A fallback PIN of `1234` remains in the code. PIN values are stored as plaintext.
+- `/secret/login` blocks for 30 seconds after three incorrect attempts. Counters
+  are held in memory and reset when the process restarts.
+- `/dev_login` has separate PIN lookup logic and no dedicated attempt limit.
+  Its reachability depends on the general authentication guard. Changing the
+  Secret PIN does not necessarily change the developer-route PIN.
+- `DEV_PIN` or `DEVELOPER_PIN` in the environment takes precedence over the configured
+  Secret PIN. Changing a PIN in the UI does not change those variables.
+- Without `FLASK_SECRET_KEY`, sessions use a known default secret. Exported key files
+  also contain a fixed session-secret value; replace it for a new installation.
 
-YubiKey OTP проверяется онлайн через Yubico. Поддерживается список разрешённых
-public ID; при пустом списке код привязывает первый успешно проверенный ID.
-Статический офлайн-пароль является повторно используемым секретом, а не одноразовым
-OTP. В текущей реализации режим проверки зависит от определения доступности сети.
+Online OTP verification uses Yubico. Allowed public IDs restrict which devices may
+authenticate. With an empty allowlist, the first successfully verified public ID is
+automatically enrolled. Offline static passwords are reusable secrets, not one-time
+codes. Network detection determines which validation mode is used.
 
-## Локальный HTTP-интерфейс
+## Local HTTP boundary
 
-Сервер слушает `127.0.0.1` на автоматически выбранном порту и проверяет адрес клиента.
-Это ограничивает прямой сетевой доступ, но не заменяет защиту от других процессов
-или веб-страниц, взаимодействующих с локальным сервером.
+The server listens on `127.0.0.1` with an automatically allocated port and checks the
+client address. This does not isolate it from other local processes or replace
+protection against web pages interacting with a local service.
 
-Общей защиты форм CSRF-токенами сейчас нет. Ответы содержат
-`Access-Control-Allow-Origin: *`; маршруты буфера обмена и завершения приложения
-исключены из динамического требования входа. Завершение приложения доступно через
-GET-запрос. Эти ограничения следует устранить до рассмотрения серверного сценария.
+There is no shared CSRF-token protection for forms. Responses include
+`Access-Control-Allow-Origin: *`. Clipboard and shutdown endpoints are excluded from
+the dynamic authentication requirement; shutdown is a GET route.
 
-Не публикуйте текущий интерфейс через внешний адрес, прокси или туннель как
-защищённый сервис. Не считайте случайный номер порта секретом аутентификации.
+Do not expose the current application through a public interface, reverse proxy or
+tunnel as a secured service. A random port is not an authentication secret.
 
-## Настройка и резервное копирование
+## Configuration and recovery
 
-1. Используйте доверенный профиль ОС и ограничьте доступ к его папке данных.
-2. Настройте собственный PIN вместо значения по умолчанию; проверьте переменные
-   `DEV_PIN`/`DEVELOPER_PIN` и учитывайте отдельный маршрут developer-входа.
-3. Задайте случайный `FLASK_SECRET_KEY` в `.env` нужного профиля. Например, получите
-   значение командой `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
-4. Для OTP задайте разрешённые public ID и проверьте вход своим устройством.
-   Не используйте демонстрационные статические пароли из старой документации.
-5. Сохраняйте резервную копию базы, её ключа, конфигураций и вложений. Защищайте
-   экспортный архив так же, как открытые пароли, и проверяйте восстановление на копии.
-6. Для смены ключа используйте функцию перешифровки в настройках после резервного
-   копирования. Простая замена `SECRET_KEY` в `.env` лишит доступа к старой базе.
+1. Restrict operating-system access to the application profile.
+2. Set your own fallback PIN and review `DEV_PIN` / `DEVELOPER_PIN`, including the
+   separate developer-login behavior.
+3. Set a random `FLASK_SECRET_KEY` in the correct profile's `.env`. Generate a value
+   with `python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+4. Configure allowed public IDs and verify sign-in with your own YubiKey.
+5. Back up the matching database, key, configuration and uploads. Test restoration
+   on a copy and protect full exports as you would plaintext credentials.
+6. Use the application's key-rotation workflow after taking a backup. Replacing
+   `SECRET_KEY` directly does not re-encrypt an existing database.
 
-Настройка этих значений не устраняет все перечисленные ограничения кода.
-Расположение профилей и перенос данных описаны в [DEPLOYMENT.md](DEPLOYMENT.md).
+These settings do not resolve all code-level limitations described above.
 
-## Сборка и публикация
+## Builds and Git
 
-macOS-сборщик включает чистый конфиг и не включает личные базы, `.env` или
-конфигурацию YubiKey. Windows-сборщик пока включает рабочий `config.json`: перед
-распространением проверяйте его на PIN, абсолютные пути и прочие локальные настройки.
+The macOS builder packages clean defaults without user databases, `.env` or YubiKey
+configuration. The Windows builder still includes the working `config.json`; inspect
+it for PINs, absolute paths and private settings before distribution.
 
-`.gitignore` исключает `.env`, данные и `.local-backups`, но не удаляет файлы,
-которые уже отслеживаются Git. `config.json` и `yubikey_config.json` отслеживаются;
-перед коммитом проверяйте их изменения на секреты. При попадании секретов в Git
-удаление файла новым коммитом не удаляет его из истории — затронутые секреты нужно
-заменить, а для ключа базы заранее обеспечить сохранность и перешифровку данных.
+Ignored files are not automatically removed from Git history. `config.json` and
+`yubikey_config.json` are tracked: review them before committing. Deleting published
+credentials in a new commit does not remove earlier copies. Replace exposed secrets;
+preserve and re-encrypt data before replacing an encryption key.
 
-Текущая локальная macOS-сборка имеет ad-hoc подпись. Подпись Developer ID,
-нотариальное заверение Apple и независимая проверка безопасности не выполнялись.
-Проверка `codesign` или SHA256 подтверждает соответствующие свойства артефакта,
-но не отсутствие уязвимостей в приложении.
+The current local macOS build has an ad-hoc signature. Developer ID signing, Apple
+notarization and independent security auditing have not been performed. A valid
+signature or checksum does not prove the absence of application vulnerabilities.
 
-## Уже исправлено при объединении
+## Improvements already made
 
-- Управление настроенными ключами YubiKey требует входа при включённой защите.
-- Пустой дополнительный пароль при редактировании сохраняет прежнее значение.
-- Восстановлены отдельные маршруты генерации, проверки и смены ключа.
-- Смена ключа обрабатывает дополнительные аккаунты; macOS использует сохранённый
-  пользовательский ключ при повторном запуске.
-- Из загрузчика окружения удалён вывод содержимого `.env` и секретов в консоль.
+The consolidation protected management of enrolled YubiKey keys when authentication
+is enabled, preserved unchanged additional passwords, restored key-management routes,
+included nested accounts in key rotation, and retained the packaged macOS profile's
+encryption key across restarts.
 
-Это перечень конкретных изменений, а не заявление об отсутствии других проблем.
-Исторические инструкции в `docs/legacy` не являются актуальной политикой безопасности.
+The environment loader no longer prints `.env` contents or environment secrets.
+These are specific fixes, not a claim that all vulnerabilities are resolved.
+Historical guides in `docs/legacy/` are not the current security policy.

@@ -1,334 +1,57 @@
-# 🤝 Руководство по вкладу в проект
+# Contributing to AllManagerC
 
-Спасибо за интерес к проекту AI Manager! Мы приветствуем любой вклад от сообщества.
+Small, focused changes are easiest to test and review. Thank you for helping improve
+the project.
 
-## 📋 Содержание
+## Start here
 
-- [Как внести вклад](#-как-внести-вклад)
-- [Настройка среды разработки](#-настройка-среды-разработки)
-- [Правила кодирования](#-правила-кодирования)
-- [Процесс Pull Request](#-процесс-pull-request)
-- [Сообщение об ошибках](#-сообщение-об-ошибках)
+- Check [existing issues](https://github.com/kureinmaxim/AllManagerC/issues) before reporting a bug.
+- For vulnerabilities, follow [SECURITY.md](SECURITY.md).
+- Follow [README.md](README.md) for setup and build commands.
 
-## 🚀 Как внести вклад
+Use a branch in your own fork and open a pull request against `main`.
 
-### Типы вкладов
+## Development
 
-- 🐛 **Исправление ошибок** - сообщите об ошибке или исправьте её
-- ✨ **Новые функции** - предложите и реализуйте новые возможности
-- 📚 **Документация** - улучшите документацию и примеры
-- 🧪 **Тесты** - добавьте тесты для существующего кода
-- 🔧 **Улучшения** - оптимизируйте производительность и код
+Create a virtual environment for your operating system and install dependencies
+using the README instructions. Start the desktop app with `python run_app.py`, using
+the Python interpreter from that environment.
 
-### Процесс
-
-1. **Проверьте существующие Issues** - возможно, ваша идея уже обсуждается
-2. **Создайте Issue** - опишите проблему или предложение
-3. **Форкните репозиторий** - создайте свою копию проекта
-4. **Создайте ветку** - работайте в отдельной ветке
-5. **Внесите изменения** - следуйте правилам кодирования
-6. **Создайте Pull Request** - опишите ваши изменения
-
-## 🔧 Настройка среды разработки
-
-### Требования
-
-- Python 3.8+
-- Git
-- pip
-
-### Установка
+Before submitting:
 
 ```bash
-# Клонирование репозитория
-git clone https://github.com/your-username/ai-manager.git
-cd ai-manager
-
-# Создание виртуального окружения
-# Windows:
-python -m venv .venv
-# macOS/Linux:
-python3 -m venv .venv
-
-# Активация окружения
-# Windows PowerShell:
-.\.venv\Scripts\Activate.ps1
-# Windows CMD:
-.venv\Scripts\activate.bat
-# macOS/Linux:
-source .venv/bin/activate
-
-# Установка зависимостей
-pip install -r requirements.txt
-
-# Установка зависимостей разработки
-pip install -r requirements-dev.txt  # если есть
+python -m unittest discover -s tests -v
+git diff --check
 ```
 
-### Настройка pre-commit hooks
+Keep new tests isolated from real user profiles. The existing suite uses temporary
+directories and generated records.
 
-```bash
-# Установка pre-commit
-pip install pre-commit
+Explain the problem, resulting behavior and checks performed in your pull request.
+Include screenshots for UI changes using fictional records. State the OS and
+architecture tested; identify platforms that have not been checked.
 
-# Установка hooks
-pre-commit install
-```
+## Scope and data handling
 
-## 📝 Правила кодирования
+- Keep functional changes and unrelated formatting separate.
+- Preserve import and encrypted-data compatibility where possible.
+- Update documentation when commands or behavior change.
+- Never commit `.env`, real databases, private exports, credentials or local backups.
+- Review tracked `config.json` and `yubikey_config.json` before committing.
+- Use synthetic data in bug reports, logs and screenshots.
 
-### Python
+The configuration still reports `5.6.0`; do not reuse an existing release tag for a
+different build. Publication is separate from ordinary code review.
 
-- Следуйте [PEP 8](https://www.python.org/dev/peps/pep-0008/)
-- Используйте type hints для функций
-- Добавляйте docstrings для всех функций и классов
-- Максимальная длина строки: 88 символов (black)
+## Documentation
 
-### Структура кода
+The main README and security policy are in English with Russian counterparts.
+Detailed operational guides remain in Russian and are labeled accordingly.
+Update both language versions where practical.
 
-```python
-"""
-Модуль для работы с аутентификацией.
+The [previous Russian contribution guide](CONTRIBUTING_ru.md) is retained as a
+historical reference. This English guide describes the current workflow.
 
-Этот модуль предоставляет функции для аутентификации пользователей
-через YubiKey и статические пароли.
-"""
+## License
 
-from typing import Optional, Tuple
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-def authenticate_user(username: str, password: str) -> Tuple[bool, str]:
-    """
-    Аутентифицирует пользователя.
-    
-    Args:
-        username: Имя пользователя
-        password: Пароль пользователя
-        
-    Returns:
-        Tuple[bool, str]: (успех, сообщение)
-    """
-    try:
-        # Логика аутентификации
-        return True, "Успешная аутентификация"
-    except Exception as e:
-        logger.error(f"Ошибка аутентификации: {e}")
-        return False, "Ошибка аутентификации"
-```
-
-### Именование
-
-- **Файлы**: `snake_case.py`
-- **Классы**: `PascalCase`
-- **Функции/переменные**: `snake_case`
-- **Константы**: `UPPER_SNAKE_CASE`
-
-### Комментарии
-
-```python
-# Хорошо - объясняет "почему"
-if user.is_admin:  # Админы могут удалять любые записи
-    allow_delete = True
-
-# Плохо - очевидно из кода
-if user.is_admin:
-    allow_delete = True  # Устанавливаем флаг
-```
-
-## 🔄 Процесс Pull Request
-
-### Создание ветки
-
-```bash
-# Создание новой ветки
-git checkout -b feature/amazing-feature
-
-# Или для исправления ошибок
-git checkout -b fix/bug-description
-```
-
-### Коммиты
-
-Используйте [Conventional Commits](https://www.conventionalcommits.org/):
-
-```bash
-# Типы коммитов
-feat: добавлена новая функция
-fix: исправлена ошибка
-docs: обновлена документация
-style: форматирование кода
-refactor: рефакторинг кода
-test: добавлены тесты
-chore: обновление зависимостей
-
-# Примеры
-git commit -m "feat: добавлена поддержка OAuth 2.0"
-git commit -m "fix: исправлена ошибка аутентификации"
-git commit -m "docs: обновлено руководство по установке"
-```
-
-### Описание Pull Request
-
-Используйте шаблон:
-
-```markdown
-## Описание
-Краткое описание изменений
-
-## Тип изменений
-- [ ] Исправление ошибки
-- [ ] Новая функция
-- [ ] Улучшение документации
-- [ ] Рефакторинг
-
-## Тестирование
-- [ ] Добавлены тесты
-- [ ] Протестировано вручную
-- [ ] Проверено на разных платформах
-
-## Чек-лист
-- [ ] Код следует стилю проекта
-- [ ] Добавлены комментарии к новому коду
-- [ ] Обновлена документация
-- [ ] Изменения не ломают существующую функциональность
-```
-
-## 🐛 Сообщение об ошибках
-
-### Создание Issue
-
-Используйте шаблон:
-
-```markdown
-## Описание ошибки
-Краткое описание проблемы
-
-## Шаги для воспроизведения
-1. Откройте приложение
-2. Перейдите в раздел "Настройки"
-3. Попробуйте изменить пароль
-4. Ошибка происходит
-
-## Ожидаемое поведение
-Что должно происходить
-
-## Фактическое поведение
-Что происходит на самом деле
-
-## Информация о системе
-- ОС: macOS 12.0 / Windows 11
-- Python: 3.13+
-- Версия приложения: 5.6.0
-
-## Дополнительная информация
-Скриншоты, логи, конфигурация
-```
-
-### Отладка
-
-```bash
-# Включение отладочного режима
-FLASK_ENV=development FLASK_DEBUG=True python3 app.py
-
-# Просмотр логов
-tail -f logs/app.log
-
-# Проверка конфигурации
-cat .env
-cat yubikey_config.json
-```
-
-## 🧪 Тестирование
-
-### Запуск тестов
-
-```bash
-# Установка pytest
-pip install pytest pytest-cov
-
-# Запуск всех тестов
-pytest
-
-# Запуск с покрытием
-pytest --cov=app
-
-# Запуск конкретного теста
-pytest tests/test_auth.py::test_yubikey_auth
-```
-
-### Написание тестов
-
-```python
-import pytest
-from app import app
-
-@pytest.fixture
-def client():
-    """Создает тестовый клиент."""
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
-
-def test_home_page(client):
-    """Тест главной страницы."""
-    response = client.get('/')
-    assert response.status_code == 200
-    assert b'AI Manager' in response.data
-```
-
-## 📚 Документация
-
-### Обновление документации
-
-- Обновляйте README.md при добавлении новых функций
-- Добавляйте комментарии к API
-- Создавайте примеры использования
-- Обновляйте руководства пользователя
-
-### Стиль документации
-
-- Используйте простой и понятный язык
-- Добавляйте примеры кода
-- Включайте скриншоты для UI изменений
-- Следуйте структуре существующих документов
-
-## 🔒 Безопасность
-
-### Сообщение об уязвимостях
-
-Если вы обнаружили уязвимость безопасности:
-
-1. **НЕ создавайте публичный Issue**
-2. Отправьте email на security@example.com
-3. Опишите уязвимость подробно
-4. Предложите способ исправления
-
-### Правила безопасности
-
-- Не коммитьте секретные ключи
-- Используйте переменные окружения для конфиденциальных данных
-- Проверяйте входные данные
-- Валидируйте все пользовательские вводы
-
-## 🎉 Признание вкладов
-
-Все значимые вклады будут отмечены в:
-
-- README.md (список контрибьюторов)
-- CHANGELOG.md (история изменений)
-- GitHub Contributors
-
-## 📞 Поддержка
-
-Если у вас есть вопросы:
-
-- 📧 Email: dev@example.com
-- 💬 Discord: [ссылка на сервер]
-- 📖 Wiki: [ссылка на wiki]
-
----
-
-Спасибо за ваш вклад в развитие AI Manager! 🚀 
+Contributions are made under the project's [MIT license](LICENSE).

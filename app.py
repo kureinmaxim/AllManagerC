@@ -278,10 +278,10 @@ if 'app_info' not in app.config:
     try:
         with open('config.json', 'r', encoding='utf-8') as f:
             config = json.load(f)
-            version = config.get('app_info', {}).get('version', '6.0.0')
+            version = config.get('app_info', {}).get('version', '6.0.1')
             developer = config.get('app_info', {}).get('developer', 'AI Manager Team')
     except:
-        version = '6.0.0'
+        version = '6.0.1'
         developer = 'AI Manager Team'
     app.config['app_info'] = {
         "version": "N/A",
@@ -2297,7 +2297,7 @@ _WSGI_SERVER = None
 def _start_flask_server():
     global SERVER_PORT, _WSGI_SERVER
     try:
-        _WSGI_SERVER = make_server('127.0.0.1', 0, app)
+        _WSGI_SERVER = make_server('127.0.0.1', 0, app, threaded=True)
         SERVER_PORT = _WSGI_SERVER.server_port
         print(f"🚀 Flask сервер запущен на http://127.0.0.1:{SERVER_PORT}")
         _WSGI_SERVER.serve_forever()

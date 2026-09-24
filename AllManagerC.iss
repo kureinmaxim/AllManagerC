@@ -1,5 +1,5 @@
 #define MyAppName "AllManagerC"
-#define MyAppVersion "6.0.0"
+#define MyAppVersion "6.0.1"
 #define MyAppPublisher "AI Manager Team"
 #define MyAppURL "https://example.local"
 #define MyAppExeName "AllManagerC.exe"

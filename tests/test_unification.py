@@ -6,6 +6,9 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+import socket
+import threading
+from urllib.request import urlopen
 import unittest
 from unittest.mock import patch
 
@@ -141,6 +144,46 @@ class UnificationTests(unittest.TestCase):
     def test_windows_data_path_is_portable(self):
         self.m.app.config['active_data_file'] = r'C:\old\project\data\test.enc'
         self.assertEqual(Path(self.m.get_active_data_path()).resolve(), (self.work / 'data/test.enc').resolve())
+
+    def test_idle_connection_does_not_block_desktop_navigation(self):
+        ready = threading.Event()
+        accepted = threading.Event()
+        servers = []
+        original_factory = self.m.make_server
+
+        def capture_server(*args, **kwargs):
+            server = original_factory(*args, **kwargs)
+            original_accept = server.get_request
+
+            def accept():
+                connection = original_accept()
+                accepted.set()
+                return connection
+
+            server.get_request = accept
+            servers.append(server)
+            ready.set()
+            return server
+
+        idle = None
+        with patch.object(self.m, 'make_server', side_effect=capture_server):
+            worker = threading.Thread(target=self.m._start_flask_server, daemon=True)
+            worker.start()
+            try:
+                self.assertTrue(ready.wait(5), 'Desktop server did not start')
+                port = servers[0].server_port
+                idle = socket.create_connection(('127.0.0.1', port), timeout=2)
+                self.assertTrue(accepted.wait(2), 'Idle connection was not accepted')
+                with urlopen(f'http://127.0.0.1:{port}/about', timeout=2) as response:
+                    self.assertEqual(response.status, 200)
+                    self.assertIn(b'AllManagerC', response.read())
+            finally:
+                if idle:
+                    idle.close()
+                if servers:
+                    servers[0].shutdown()
+                    servers[0].server_close()
+                worker.join(timeout=5)
 
     def test_github_icon_is_used(self):
         response = self.client.get('/')

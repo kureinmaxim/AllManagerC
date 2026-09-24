@@ -85,7 +85,7 @@ ALLMANAGERC_DATA_DIR=/tmp/allmanagerc-test-profile \
 bash build_macos.sh --stage dmg --output dist/macos-arm64-20260923
 ```
 
-Результат: `AllManagerC_Installer_v5.6.0_arm64.dmg` и файл `.dmg.sha256` рядом.
+Результат: `AllManagerC_Installer_v6.0.0_arm64.dmg` и файл `.dmg.sha256` рядом.
 Внутри образа — `AllManagerC.app` и ссылка на `/Applications`.
 
 `hdiutil` требует доступа к системным устройствам дисковых образов. При ошибке
@@ -93,12 +93,12 @@ bash build_macos.sh --stage dmg --output dist/macos-arm64-20260923
 Если подготовленная папка `dmg-content` уже создана, повторить только упаковку:
 
 ```bash
-hdiutil create -volname 'AllManagerC 5.6.0' \
+hdiutil create -volname 'AllManagerC 6.0.0' \
   -srcfolder dist/macos-arm64-20260923/dmg-content \
   -format UDZO -fs HFS+ \
-  dist/macos-arm64-20260923/AllManagerC_Installer_v5.6.0_arm64.dmg
-hdiutil verify dist/macos-arm64-20260923/AllManagerC_Installer_v5.6.0_arm64.dmg
-shasum -a 256 dist/macos-arm64-20260923/AllManagerC_Installer_v5.6.0_arm64.dmg
+  dist/macos-arm64-allmanagerc-i18n/AllManagerC_Installer_v6.0.0_arm64.dmg
+hdiutil verify dist/macos-arm64-allmanagerc-i18n/AllManagerC_Installer_v6.0.0_arm64.dmg
+shasum -a 256 dist/macos-arm64-allmanagerc-i18n/AllManagerC_Installer_v6.0.0_arm64.dmg
 ```
 
 ## 6. Установка
@@ -119,7 +119,7 @@ Git-тег и один GitHub Release, добавляя в него инстал
 
 Перед публичным релизом объединённого кода:
 
-1. Выберите новый номер версии: локальная сборка пока использует 5.6.0 из конфигурации,
+1. Выберите новый номер версии: локальная сборка использует номер из `config.json`,
    но содержит более новые изменения. Не переиспользуйте старый опубликованный тег.
 2. Согласуйте версию в `config.json`, Windows-инсталляторе `AllManagerC.iss`,
    резервных значениях версии в коде и документации.

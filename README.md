@@ -49,13 +49,11 @@ The application interface is currently in **Russian**.
 ## Get the app
 
 [Published installers](https://github.com/kureinmaxim/AllManagerC/releases) include
-Windows and macOS builds from the **older v5.6.0 release**.
+Windows and macOS builds for the current **v6.0.0 release**.
 
 The interface supports Russian, English, and Simplified Chinese. Use the translate icon in the top bar to switch languages; the choice is remembered locally.
 
-The current `main` branch includes subsequent consolidation and fixes. Build from
-source for those changes; the newly built local arm64 DMG has not been uploaded as
-a release. The configuration still says `5.6.0`, so identify source builds by commit.
+The release includes the consolidated codebase and the multilingual interface.
 
 **Verified locally:** macOS 26.6.2, Apple Silicon arm64, Python 3.13.9, ten regression
 tests and two native launches with a temporary profile. The updated Windows installer

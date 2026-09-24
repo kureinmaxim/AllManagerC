@@ -21,9 +21,9 @@ class UnificationTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory()
         cls.work = Path(cls.temp.name)
         cls.previous_cwd = Path.cwd()
-        for name in ['app.py', 'runtime_paths.py', 'yubikey_auth.py', 'security_logger.py', 'ai_services_schema.json']:
+        for name in ['app.py', 'runtime_paths.py', 'localization.py', 'yubikey_auth.py', 'security_logger.py', 'ai_services_schema.json']:
             shutil.copy2(ROOT / name, cls.work / name)
-        for name in ['templates', 'static']:
+        for name in ['templates', 'static', 'translations']:
             shutil.copytree(ROOT / name, cls.work / name)
         cls.key = Fernet.generate_key().decode()
         (cls.work / '.env').write_text('SECRET_KEY=' + cls.key + '\n')
@@ -146,6 +146,19 @@ class UnificationTests(unittest.TestCase):
         response = self.client.get('/')
         self.assertIn(b'images/ALLc.png', response.data)
         self.assertIn(b'images/icon.ico', response.data)
+
+    def test_interface_language_switch_is_persistent(self):
+        for language, html_lang, marker in [('ru', 'ru', 'Настройки'), ('en', 'en', 'Settings'), ('zh', 'zh-Hans', '设置')]:
+            response = self.client.get(f'/language/{language}?next=/')
+            self.assertEqual(response.status_code, 302)
+            page = self.client.get('/').data.decode('utf-8')
+            self.assertIn(f'<html lang="{html_lang}"', page)
+            self.assertIn(marker, page)
+        self.assertEqual(self.client.get('/language/fr').status_code, 404)
+
+    def test_language_redirect_rejects_external_target(self):
+        response = self.client.get('/language/en?next=https://example.com')
+        self.assertEqual(response.location, '/')
 
 
 if __name__ == '__main__':

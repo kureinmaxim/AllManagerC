@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Настройка YubiKey - AI Manager{% endblock %}
+{% block title %}{{ _("Настройка YubiKey - AllManagerC") }}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -10,17 +10,17 @@
                 <div class="card-header bg-primary text-white text-center py-3">
                     <h4 class="mb-0">
                         <i class="bi bi-gear me-2"></i>
-                        Управление YubiKey
+                        {{ _("Управление YubiKey") }}
                     </h4>
                     {% if yubikey_auth.enabled %}
                         <small class="text-light">
                             <i class="bi bi-shield-check me-1"></i>
-                            Защита активна ({{ keys|length }} ключей)
+                            {{ _("Защита активна (") }}{{ keys|length }} {{ _("ключей)") }}
                         </small>
                     {% else %}
                         <small class="text-light">
                             <i class="bi bi-shield me-1"></i>
-                            Защита отключена
+                            {{ _("Защита отключена") }}
                         </small>
                     {% endif %}
                 </div>
@@ -29,7 +29,7 @@
                     <!-- Список существующих ключей -->
                     {% if keys %}
                     <div class="mb-4">
-                        <h5>Настроенные ключи ({{ keys|length }}):</h5>
+                        <h5>{{ _("Настроенные ключи (") }}{{ keys|length }}):</h5>
                         <div class="list-group">
                             {% for key in keys %}
                             <div class="list-group-item d-flex justify-content-between align-items-center">
@@ -38,12 +38,12 @@
                                     <br>
                                     <small class="text-muted">Client ID: {{ key.client_id[:10] }}...</small>
                                     <br>
-                                    <small class="text-muted">Добавлен: {{ key.created_at[:10] }}</small>
+                                    <small class="text-muted">{{ _("Добавлен:") }} {{ key.created_at[:10] }}</small>
                                 </div>
                                 <form method="POST" action="{{ url_for('yubikey_remove_key', key_index=loop.index0) }}"
-                                      onsubmit="return confirm('Удалить ключ &quot;{{ key.name }}&quot;?')" style="display: inline;">
+                                      onsubmit="return confirm({{ _("Удалить ключ &quot;\u000015\u0000&quot;?")|tojson|forceescape }})" style="display: inline;">
                                     <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-trash"></i> Удалить
+                                        <i class="bi bi-trash"></i> {{ _("Удалить") }}
                                     </button>
                                 </form>
                             </div>
@@ -53,22 +53,22 @@
                     {% else %}
                     <div class="alert alert-info mb-4">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>YubiKey не настроен</strong><br>
-                        Добавьте первый ключ для включения защиты приложения.
+                        <strong>{{ _("YubiKey не настроен") }}</strong><br>
+                        {{ _("Добавьте первый ключ для включения защиты приложения.") }}
                     </div>
                     {% endif %}
                     
                     <!-- Форма добавления нового ключа -->
                     <div class="card">
                         <div class="card-header">
-                            <h6 class="mb-0">Добавить новый YubiKey</h6>
+                            <h6 class="mb-0">{{ _("Добавить новый YubiKey") }}</h6>
                         </div>
                         <div class="card-body">
                             <form method="POST">
                                 <div class="mb-3">
-                                    <label for="key_name" class="form-label">Название ключа:</label>
+                                    <label for="key_name" class="form-label">{{ _("Название ключа:") }}</label>
                                     <input type="text" class="form-control" id="key_name" name="key_name" 
-                                           placeholder="Например: Основной ключ, Резервный ключ">
+                                           placeholder="{{ _("Например: Основной ключ, Резервный ключ") }}">
                                 </div>
                                 <div class="mb-3">
                                     <label for="client_id" class="form-label fw-bold">Yubico Client ID:</label>
@@ -77,24 +77,24 @@
                                 <div class="mb-3">
                                     <label for="secret_key" class="form-label fw-bold">Yubico Secret Key:</label>
                                     <input type="text" class="form-control" id="secret_key" name="secret_key" required>
-                                    <div class="form-text">Строка base64 из кабинета Yubico. Длина кратна 4; символы A–Z, a–z, 0–9, +, /, =</div>
+                                    <div class="form-text">{{ _("Строка base64 из кабинета Yubico. Длина кратна 4; символы A–Z, a–z, 0–9, +, /, =") }}</div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="public_id" class="form-label">Ограничить вход по публичному ID (опционально):</label>
+                                    <label for="public_id" class="form-label">{{ _("Ограничить вход по публичному ID (опционально):") }}</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="public_id" name="public_id" placeholder="Первые 12 символов OTP после успешного теста">
-                                        <button class="btn btn-outline-secondary" type="button" id="capturePublicIdBtn">Захватить из OTP</button>
+                                        <input type="text" class="form-control" id="public_id" name="public_id" placeholder="{{ _("Первые 12 символов OTP после успешного теста") }}">
+                                        <button class="btn btn-outline-secondary" type="button" id="capturePublicIdBtn">{{ _("Захватить из OTP") }}</button>
                                     </div>
-                                    <div class="form-text">Можно указать список через запятую. Если заполнить, вход будет разрешён только для указанных ключей.</div>
+                                    <div class="form-text">{{ _("Можно указать список через запятую. Если заполнить, вход будет разрешён только для указанных ключей.") }}</div>
                                 </div>
                                 <div class="d-grid gap-2">
                                     <button type="submit" class="btn btn-success">
                                         <i class="bi bi-plus-circle me-2"></i>
-                                        Добавить ключ
+                                        {{ _("Добавить ключ") }}
                                     </button>
                                     <a href="{{ url_for('yubikey_instructions') }}" class="btn btn-outline-secondary">
                                         <i class="bi bi-info-circle me-2"></i>
-                                        Как получить ключи Yubico?
+                                        {{ _("Как получить ключи Yubico?") }}
                                     </a>
                                 </div>
                             </form>
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!btn || !input) return;
   btn.addEventListener('click', async function() {
     try {
-      const otp = prompt('Вставьте сюда недавно сгенерированный OTP из нужного ключа');
+      const otp = prompt({{ _("Вставьте сюда недавно сгенерированный OTP из нужного ключа")|tojson }});
       if (!otp) return;
       const cleaned = String(otp).trim();
       const pub = cleaned.slice(0, 12);
@@ -125,11 +125,11 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           input.value = pub;
         }
-        alert('Публичный ID добавлен: ' + pub);
+        alert({{ _("Публичный ID добавлен:")|tojson }} + pub);
       } else {
-        alert('Не удалось извлечь публичный ID (нужно вставить полный OTP)');
+        alert({{ _("Не удалось извлечь публичный ID (нужно вставить полный OTP)")|tojson }});
       }
-    } catch(e) { alert('Ошибка: ' + e); }
+    } catch(e) { alert({{ _("Ошибка:")|tojson }} + e); }
   });
 });
 </script>

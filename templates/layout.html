@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru" data-bs-theme="{{ request.cookies.get('theme', 'dark') }}">
+<html lang="{{ 'zh-Hans' if current_locale == 'zh' else current_locale }}" data-bs-theme="{{ request.cookies.get('theme', 'dark') }}">
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="{{ url_for('static', filename='images/icon.ico') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AI Services Manager{% endblock %}</title>
+    <title>{% block title %}AllManagerC{% endblock %}</title>
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -20,21 +20,22 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" id="languageMenu" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{ _('Язык интерфейса') }}"><i class="bi bi-translate me-1"></i>{{ ui_languages[current_locale] }}</a><ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageMenu">{% for code, label in ui_languages.items() %}<li><a class="dropdown-item{% if code == current_locale %} active{% endif %}" href="{{ url_for('change_language', language=code, next=request.full_path.rstrip('?')) }}">{{ label }}</a></li>{% endfor %}</ul></li>
                     <!-- YubiKey Status Indicator -->
                     {% if yubikey_status.available %}
                         <li class="nav-item">
                             <span class="nav-link d-flex align-items-center">
                                 {% if yubikey_status.enabled %}
                                     {% if yubikey_status.authenticated %}
-                                        <i class="bi bi-shield-check text-success me-1" title="YubiKey защита активна"></i>
-                                        <small class="text-success">Защищено</small>
+                                        <i class="bi bi-shield-check text-success me-1" title="{{ _("YubiKey защита активна") }}"></i>
+                                        <small class="text-success">{{ _("Защищено") }}</small>
                                     {% else %}
-                                        <i class="bi bi-shield-lock text-warning me-1" title="YubiKey защита включена, требуется вход"></i>
-                                        <small class="text-warning">Требуется вход</small>
+                                        <i class="bi bi-shield-lock text-warning me-1" title="{{ _("YubiKey защита включена, требуется вход") }}"></i>
+                                        <small class="text-warning">{{ _("Требуется вход") }}</small>
                                     {% endif %}
                                 {% else %}
-                                    <i class="bi bi-shield text-muted me-1" title="YubiKey защита отключена"></i>
-                                    <small class="text-muted">Не защищено</small>
+                                    <i class="bi bi-shield text-muted me-1" title="{{ _("YubiKey защита отключена") }}"></i>
+                                    <small class="text-muted">{{ _("Не защищено") }}</small>
                                 {% endif %}
                                 <span class="badge bg-secondary ms-1">{{ yubikey_status.keys_count }}</span>
                             </span>
@@ -42,29 +43,29 @@
                     {% else %}
                         <li class="nav-item">
                             <span class="nav-link d-flex align-items-center">
-                                <i class="bi bi-shield text-muted me-1" title="YubiKey защита отключена"></i>
-                                <small class="text-muted">Не защищено</small>
+                                <i class="bi bi-shield text-muted me-1" title="{{ _("YubiKey защита отключена") }}"></i>
+                                <small class="text-muted">{{ _("Не защищено") }}</small>
                             </span>
                         </li>
                     {% endif %}
                     
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('settings_page') }}">Настройки</a>
+                        <a class="nav-link" href="{{ url_for('settings_page') }}">{{ _("Настройки") }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('help_page') }}">Справка</a>
+                        <a class="nav-link" href="{{ url_for('help_page') }}">{{ _("Справка") }}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('about_page') }}">О программе</a>
+                        <a class="nav-link" href="{{ url_for('about_page') }}">{{ _("О программе") }}</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-search"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li class="dropdown-header">Масштаб интерфейса</li>
+                            <li class="dropdown-header">{{ _("Масштаб интерфейса") }}</li>
                             <li><a class="dropdown-item" href="#" onclick="setZoom('70')"><i class="bi bi-zoom-out me-2"></i>70%</a></li>
-                            <li><a class="dropdown-item active" href="#" onclick="setZoom('80')"><i class="bi bi-search me-2"></i>80% (по умолчанию)</a></li>
+                            <li><a class="dropdown-item active" href="#" onclick="setZoom('80')"><i class="bi bi-search me-2"></i>{{ _("80% (по умолчанию)") }}</a></li>
                             <li><a class="dropdown-item" href="#" onclick="setZoom('90')"><i class="bi bi-search me-2"></i>90%</a></li>
                             <li><a class="dropdown-item" href="#" onclick="setZoom('100')"><i class="bi bi-zoom-in me-2"></i>100%</a></li>
                         </ul>
@@ -74,8 +75,8 @@
                             <i class="bi bi-circle-half"></i>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="setTheme('light')"><i class="bi bi-sun-fill me-2"></i>Светлая</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="setTheme('dark')"><i class="bi bi-moon-stars-fill me-2"></i>Темная</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTheme('light')"><i class="bi bi-sun-fill me-2"></i>{{ _("Светлая") }}</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="setTheme('dark')"><i class="bi bi-moon-stars-fill me-2"></i>{{ _("Темная") }}</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -89,7 +90,7 @@
     
     <footer class="text-center small py-3 bg-body-tertiary border-top">
         <div class="container">
-            <p class="mb-0 text-body-secondary">AllManagerC v{{ app_info.version }} | Разработчик: <span id="developer-name" style="cursor: pointer; text-decoration: underline;" title="Двойной клик для секретного входа">{{ app_info.developer }}</span></p>
+            <p class="mb-0 text-body-secondary">AllManagerC v{{ app_info.version }} {{ _("| Разработчик:") }} <span id="developer-name" style="cursor: pointer; text-decoration: underline;" title="{{ _("Двойной клик для секретного входа") }}">{{ app_info.developer }}</span></p>
         </div>
     </footer>
 
@@ -119,37 +120,37 @@
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">🔐 Секретный вход</h5>
+                            <h5 class="modal-title">${ {{ _("🔐 Секретный вход")|tojson }} }</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <ul class="nav nav-tabs" role="tablist">
-                                <li class="nav-item"><button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab">Вход</button></li>
-                                <li class="nav-item"><button class="nav-link" id="change-pin-tab" data-bs-toggle="tab" data-bs-target="#change-pin-pane" type="button" role="tab">Сменить PIN</button></li>
+                                <li class="nav-item"><button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab">${ {{ _("Вход")|tojson }} }</button></li>
+                                <li class="nav-item"><button class="nav-link" id="change-pin-tab" data-bs-toggle="tab" data-bs-target="#change-pin-pane" type="button" role="tab">${ {{ _("Сменить PIN")|tojson }} }</button></li>
                             </ul>
                             <div class="tab-content">
                                 <div class="tab-pane fade show active p-3" id="login-pane" role="tabpanel">
-                                    <p class="text-muted mb-3">Введите PIN-код для секретного входа</p>
+                                    <p class="text-muted mb-3">${ {{ _("Введите PIN-код для секретного входа")|tojson }} }</p>
                                     <div class="mb-3">
-                                        <label for="secretPin" class="form-label">PIN-код</label>
+                                        <label for="secretPin" class="form-label">${ {{ _("PIN-код")|tojson }} }</label>
                                         <input type="password" class="form-control" id="secretPin" maxlength="4" autocomplete="off">
                                     </div>
                                     <div id="secretLoginMessage" class="alert" style="display:none;"></div>
                                 </div>
                                 <div class="tab-pane fade p-3" id="change-pin-pane" role="tabpanel">
-                                    <p class="text-muted mb-3">Смените PIN-код</p>
+                                    <p class="text-muted mb-3">${ {{ _("Смените PIN-код")|tojson }} }</p>
                                     <form id="changePinForm">
-                                        <div class="mb-3"><label for="oldPin" class="form-label">Старый PIN</label><input type="password" class="form-control" id="oldPin" name="old_pin" maxlength="4" required></div>
-                                        <div class="mb-3"><label for="newPin1" class="form-label">Новый PIN</label><input type="password" class="form-control" id="newPin1" name="new_pin1" maxlength="4" required></div>
-                                        <div class="mb-3"><label for="newPin2" class="form-label">Подтвердите новый PIN</label><input type="password" class="form-control" id="newPin2" name="new_pin2" maxlength="4" required></div>
+                                        <div class="mb-3"><label for="oldPin" class="form-label">${ {{ _("Старый PIN")|tojson }} }</label><input type="password" class="form-control" id="oldPin" name="old_pin" maxlength="4" required></div>
+                                        <div class="mb-3"><label for="newPin1" class="form-label">${ {{ _("Новый PIN")|tojson }} }</label><input type="password" class="form-control" id="newPin1" name="new_pin1" maxlength="4" required></div>
+                                        <div class="mb-3"><label for="newPin2" class="form-label">${ {{ _("Подтвердите новый PIN")|tojson }} }</label><input type="password" class="form-control" id="newPin2" name="new_pin2" maxlength="4" required></div>
                                     </form>
                                     <div id="changePinMessage" class="alert" style="display:none;"></div>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                            <button type="button" class="btn btn-primary" id="modalSubmitBtn">Войти</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">${ {{ _("Отмена")|tojson }} }</button>
+                            <button type="button" class="btn btn-primary" id="modalSubmitBtn">${ {{ _("Войти")|tojson }} }</button>
                         </div>
                     </div>
                 </div>`;
@@ -158,8 +159,8 @@
             setTimeout(() => { document.getElementById('secretPin')?.focus(); }, 300);
 
             const submitBtn = document.getElementById('modalSubmitBtn');
-            const toLogin = () => { submitBtn.textContent='Войти'; submitBtn.className='btn btn-primary'; submitBtn.onclick=submitSecretLogin; };
-            const toChange = () => { submitBtn.textContent='Сменить PIN'; submitBtn.className='btn btn-warning'; submitBtn.onclick=submitChangePin; };
+            const toLogin = () => { submitBtn.textContent={{ _("Войти")|tojson }}; submitBtn.className='btn btn-primary'; submitBtn.onclick=submitSecretLogin; };
+            const toChange = () => { submitBtn.textContent={{ _("Сменить PIN")|tojson }}; submitBtn.className='btn btn-warning'; submitBtn.onclick=submitChangePin; };
             document.getElementById('login-tab').addEventListener('click', toLogin);
             document.getElementById('change-pin-tab').addEventListener('click', toChange);
             toLogin();
@@ -182,28 +183,28 @@
 
         function submitSecretLogin() {
             const pin = document.getElementById('secretPin').value.trim();
-            if (!pin) return showMsg('secretLoginMessage','Введите PIN-код','danger');
-            const btn = document.getElementById('modalSubmitBtn'); btn.disabled = true; btn.textContent = 'Проверка...';
+            if (!pin) return showMsg('secretLoginMessage',{{ _("Введите PIN-код")|tojson }},'danger');
+            const btn = document.getElementById('modalSubmitBtn'); btn.disabled = true; btn.textContent = {{ _("Проверка...")|tojson }};
             fetch('/secret/login', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:`pin=${encodeURIComponent(pin)}` })
                 .then(r=>r.json()).then(d=>{
-                    if (d.success) { showMsg('secretLoginMessage', d.message || 'Успех','success'); setTimeout(()=>location.reload(), 700); }
-                    else if (d.blocked) { showMsg('secretLoginMessage', `Блокировка: ${d.remaining_seconds} сек.`, 'warning'); }
-                    else { showMsg('secretLoginMessage', d.message || 'Ошибка', 'danger'); }
-                }).catch(()=>showMsg('secretLoginMessage','Ошибка сети','danger'))
-                .finally(()=>{ btn.disabled=false; btn.textContent='Войти'; });
+                    if (d.success) { showMsg('secretLoginMessage', d.message || {{ _("Успех")|tojson }},'success'); setTimeout(()=>location.reload(), 700); }
+                    else if (d.blocked) { showMsg('secretLoginMessage', `${ {{ _("Блокировка:")|tojson }} } ${d.remaining_seconds} ${ {{ _("сек.")|tojson }} }`, 'warning'); }
+                    else { showMsg('secretLoginMessage', d.message || {{ _("Ошибка")|tojson }}, 'danger'); }
+                }).catch(()=>showMsg('secretLoginMessage',{{ _("Ошибка сети")|tojson }},'danger'))
+                .finally(()=>{ btn.disabled=false; btn.textContent={{ _("Войти")|tojson }}; });
         }
 
         function submitChangePin() {
             const form = document.getElementById('changePinForm'); const fd = new FormData(form);
             const n1 = fd.get('new_pin1')||'', n2 = fd.get('new_pin2')||'';
-            if (!fd.get('old_pin') || !n1 || !n2) return showMsg('changePinMessage','Заполните все поля','danger');
-            if (n1 !== n2) return showMsg('changePinMessage','Новые PIN-коды не совпадают','danger');
-            if (String(n1).length < 4) return showMsg('changePinMessage','PIN минимум 4 символа','danger');
-            const btn = document.getElementById('modalSubmitBtn'); btn.disabled = true; btn.textContent='Проверка...';
+            if (!fd.get('old_pin') || !n1 || !n2) return showMsg('changePinMessage',{{ _("Заполните все поля")|tojson }},'danger');
+            if (n1 !== n2) return showMsg('changePinMessage',{{ _("Новые PIN-коды не совпадают")|tojson }},'danger');
+            if (String(n1).length < 4) return showMsg('changePinMessage',{{ _("PIN минимум 4 символа")|tojson }},'danger');
+            const btn = document.getElementById('modalSubmitBtn'); btn.disabled = true; btn.textContent={{ _("Проверка...")|tojson }};
             fetch('/secret/change_pin', { method:'POST', body:fd })
-                .then(r=>r.json()).then(d=>{ showMsg('changePinMessage', d.success ? 'PIN изменён' : (d.message||'Ошибка'), d.success?'success':'danger'); })
-                .catch(()=>showMsg('changePinMessage','Ошибка сети','danger'))
-                .finally(()=>{ btn.disabled=false; btn.textContent='Сменить PIN'; });
+                .then(r=>r.json()).then(d=>{ showMsg('changePinMessage', d.success ? {{ _("PIN изменён")|tojson }} : (d.message||{{ _("Ошибка")|tojson }}), d.success?'success':'danger'); })
+                .catch(()=>showMsg('changePinMessage',{{ _("Ошибка сети")|tojson }},'danger'))
+                .finally(()=>{ btn.disabled=false; btn.textContent={{ _("Сменить PIN")|tojson }}; });
         }
         // Применить сохранённый масштаб при загрузке
         document.addEventListener('DOMContentLoaded', function() {
@@ -283,7 +284,7 @@
 
           const t = bootstrap.Tooltip.getOrCreateInstance(button);
           const orig = button.getAttribute('data-bs-original-title') || button.getAttribute('title') || '';
-          const msg = ok ? 'Скопировано!' : 'Не удалось';
+          const msg = ok ? {{ _("Скопировано!")|tojson }} : {{ _("Не удалось")|tojson }};
           button.setAttribute('data-bs-original-title', msg);
           if (typeof t.setContent === 'function') t.setContent({ '.tooltip-inner': msg });
           try { t.show(); } catch(_) {}

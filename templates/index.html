@@ -16,16 +16,16 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1>Список AI-сервисов</h1>
+            <h1>{{ _("Список AI-сервисов") }}</h1>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ url_for('yubikey_setup') }}" class="btn btn-outline-warning">
-                <i class="bi bi-shield-lock me-1"></i> Настроить YubiKey
+                <i class="bi bi-shield-lock me-1"></i> {{ _("Настроить YubiKey") }}
             </a>
-            <a href="{{ url_for('add_service') }}" class="btn btn-primary">Добавить AI-сервис</a>
+            <a href="{{ url_for('add_service') }}" class="btn btn-primary">{{ _("Добавить AI-сервис") }}</a>
             {% if servers %}
             <button type="button" class="btn btn-outline-danger" onclick="showDeleteAllConfirm()">
-                <i class="bi bi-trash3 me-1"></i> Удалить все сервисы
+                <i class="bi bi-trash3 me-1"></i> {{ _("Удалить все сервисы") }}
             </button>
             {% endif %}
         </div>
@@ -35,24 +35,24 @@
     <div class="card text-center shadow-sm">
         <div class="card-body">
             <p class="card-text pt-2">
-                Вы можете начать с добавления вашего первого AI-сервиса или импортировать существующие данные.
+                {{ _("Вы можете начать с добавления вашего первого AI-сервиса или импортировать существующие данные.") }}
             </p>
             <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
                  <a href="{{ url_for('add_service') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                    <i class="bi bi-plus-circle"></i> Добавить первый AI-сервис
+                    <i class="bi bi-plus-circle"></i> {{ _("Добавить первый AI-сервис") }}
                 </a>
                 <a href="{{ url_for('settings_page') }}" class="btn btn-outline-secondary btn-lg px-4">
-                    <i class="bi bi-upload"></i> Импортировать данные
+                    <i class="bi bi-upload"></i> {{ _("Импортировать данные") }}
                 </a>
             </div>
         </div>
         <div class="card-footer text-muted">
-            Все данные будут сохранены в зашифрованный файл.
+            {{ _("Все данные будут сохранены в зашифрованный файл.") }}
         </div>
     </div>
     {% elif servers %}
     <div class="position-relative carousel-wrapper">
-      <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('left')" aria-label="Влево">
+      <button class="carousel-arrow carousel-arrow-left" onclick="carouselScroll('left')" aria-label="{{ _("Влево") }}">
         <i class="bi bi-chevron-left"></i>
       </button>
       <div class="card-carousel-row" id="card-carousel-row">
@@ -62,11 +62,11 @@
             <div class="card-stack-actions">
                     <div class="d-flex justify-content-between mt-3">
                         <a href="{{ url_for('edit_service', service_id=server.id) }}" class="btn btn-sm btn-outline-secondary me-2">
-                            <i class="bi bi-pencil"></i> Редактировать
+                            <i class="bi bi-pencil"></i> {{ _("Редактировать") }}
                     </a>
-                        <form action="{{ url_for('delete_service', service_id=server.id) }}" method="post" onsubmit="return confirm('Вы уверены, что хотите удалить этот AI-сервис?');">
+                        <form action="{{ url_for('delete_service', service_id=server.id) }}" method="post" onsubmit="return confirm({{ _("Вы уверены, что хотите удалить этот AI-сервис?")|tojson|forceescape }});">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i> Удалить
+                                <i class="bi bi-trash"></i> {{ _("Удалить") }}
                             </button>
                     </form>
                     </div>
@@ -74,7 +74,7 @@
             </div>
         {% endfor %}
         </div>
-      <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('right')" aria-label="Вправо">
+      <button class="carousel-arrow carousel-arrow-right" onclick="carouselScroll('right')" aria-label="{{ _("Вправо") }}">
         <i class="bi bi-chevron-right"></i>
       </button>
       <div class="carousel-indicators" id="carousel-indicators">
@@ -85,7 +85,7 @@
     </div>
     {% else %}
     <div class="alert alert-info text-center" role="alert">
-        AI-сервисов пока нет. <a href="{{ url_for('add_service') }}" class="alert-link">Добавьте первый</a> или <a href="{{ url_for('settings_page') }}" class="alert-link">импортируйте данные</a>.
+        {{ _("AI-сервисов пока нет.") }} <a href="{{ url_for('add_service') }}" class="alert-link">{{ _("Добавьте первый") }}</a> {{ _("или") }} <a href="{{ url_for('settings_page') }}" class="alert-link">{{ _("импортируйте данные") }}</a>.
     </div>
     {% endif %}
 </div>
@@ -95,14 +95,14 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-                <h5 class="modal-title" id="ipModalLabel">Информация об IP-адресе</h5>
+                <h5 class="modal-title" id="ipModalLabel">{{ _("Информация об IP-адресе") }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-                <pre id="ipInfo">Загрузка...</pre>
+                <pre id="ipInfo">{{ _("Загрузка...") }}</pre>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _("Закрыть") }}</button>
       </div>
     </div>
   </div>
@@ -115,23 +115,23 @@
       <div class="modal-header bg-danger text-white">
         <h5 class="modal-title" id="deleteAllModalLabel">
           <i class="bi bi-exclamation-triangle me-2"></i>
-          Удаление всех сервисов
+          {{ _("Удаление всех сервисов") }}
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="alert alert-danger">
           <i class="bi bi-exclamation-triangle me-2"></i>
-          <strong>Внимание!</strong> Это действие нельзя отменить.
+          <strong>{{ _("Внимание!") }}</strong> {{ _("Это действие нельзя отменить.") }}
         </div>
-        <p>Вы действительно хотите удалить <strong>все {{ servers|length }} AI-сервисов</strong>?</p>
-        <p class="text-muted small">Все данные будут безвозвратно удалены из системы.</p>
+        <p>{{ _("Вы действительно хотите удалить") }} <strong>{{ _("все") }} {{ servers|length }} {{ _("AI-сервисов") }}</strong>?</p>
+        <p class="text-muted small">{{ _("Все данные будут безвозвратно удалены из системы.") }}</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _("Отмена") }}</button>
         <form action="{{ url_for('delete_all_services') }}" method="post" style="display: inline;">
           <button type="submit" class="btn btn-danger">
-            <i class="bi bi-trash3 me-1"></i> Удалить все сервисы
+            <i class="bi bi-trash3 me-1"></i> {{ _("Удалить все сервисы") }}
           </button>
         </form>
       </div>

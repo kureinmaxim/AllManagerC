@@ -48,6 +48,7 @@ def main():
             f'--distpath={output}', f'--workpath={output / "work"}', f'--specpath={resources}',
             f'--add-data={ROOT / "templates"}:templates',
             f'--add-data={ROOT / "static"}:static',
+            f'--add-data={ROOT / "translations"}:translations',
             f'--add-data={resources / "config.json"}:.',
             f'--add-data={ROOT / "ai_services_schema.json"}:.',
             '--hidden-import=webview.platforms.cocoa', '--hidden-import=yubico_client',

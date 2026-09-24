@@ -72,6 +72,7 @@ def build():
     datas = [
         "templates;templates",
         "static;static",
+        "translations;translations",
         "config.json;.",
         "ai_services_schema.json;.",
     ]

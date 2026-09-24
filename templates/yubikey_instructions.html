@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Инструкции по настройке YubiKey - AI Manager{% endblock %}
+{% block title %}{{ _("Инструкции по настройке YubiKey - AllManagerC") }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -10,7 +10,7 @@
                 <div class="card-header bg-primary text-white">
                     <h4 class="mb-0">
                         <i class="bi bi-gear-wide-connected me-2"></i>
-                        Настройка YubiKey Аутентификации
+                        {{ _("Настройка YubiKey Аутентификации") }}
                     </h4>
                 </div>
                 <div class="card-body">
@@ -20,32 +20,32 @@
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingOnline">
                                 <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOnline" aria-expanded="true" aria-controls="collapseOnline">
-                                    <i class="bi bi-wifi me-2"></i><strong>Шаг 1: Получение ключей для Онлайн-режима (OTP)</strong>
+                                    <i class="bi bi-wifi me-2"></i><strong>{{ _("Шаг 1: Получение ключей для Онлайн-режима (OTP)") }}</strong>
                                 </button>
                             </h2>
                             <div id="collapseOnline" class="accordion-collapse collapse show" aria-labelledby="headingOnline" data-bs-parent="#yubikeyInstructionsAccordion">
                                 <div class="accordion-body">
-                                    <p class="text-muted">Этот шаг необходим для основной, самой безопасной онлайн-аутентификации.</p>
+                                    <p class="text-muted">{{ _("Этот шаг необходим для основной, самой безопасной онлайн-аутентификации.") }}</p>
                                     <ol class="list-group list-group-numbered">
                         <li class="list-group-item">
-                                            <strong>Откройте ссылку в браузере:</strong> 
+                                            <strong>{{ _("Откройте ссылку в браузере:") }}</strong> 
                                             <a href="https://upgrade.yubico.com/getapikey/" target="_blank">https://upgrade.yubico.com/getapikey/</a>
                         </li>
                         <li class="list-group-item">
-                                            <strong>Введите ваш email</strong>, вставьте YubiKey и коснитесь его, когда попросят.
+                                            <strong>{{ _("Введите ваш email") }}</strong>{{ _(", вставьте YubiKey и коснитесь его, когда попросят.") }}
                         </li>
                         <li class="list-group-item">
-                                            <strong>Согласитесь с условиями</strong> и нажмите "Get API Key".
+                                            <strong>{{ _("Согласитесь с условиями") }}</strong> {{ _("и нажмите \"Get API Key\".") }}
                         </li>
                         <li class="list-group-item">
-                            <strong>Скопируйте полученные ключи:</strong>
+                            <strong>{{ _("Скопируйте полученные ключи:") }}</strong>
                             <ul class="mt-2">
-                                                <li><strong>Client ID:</strong> (число, например: 12345)</li>
-                                                <li><strong>Secret Key:</strong> (строка, например: abcdefghijklmnop=)</li>
+                                                <li><strong>Client ID:</strong> {{ _("(число, например: 12345)") }}</li>
+                                                <li><strong>Secret Key:</strong> {{ _("(строка, например: abcdefghijklmnop=)") }}</li>
                             </ul>
                         </li>
                         <li class="list-group-item">
-                                            <strong>Вернитесь в приложение</strong> и вставьте эти ключи в форму настройки.
+                                            <strong>{{ _("Вернитесь в приложение") }}</strong> {{ _("и вставьте эти ключи в форму настройки.") }}
                                         </li>
                                     </ol>
                                 </div>
@@ -56,37 +56,37 @@
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="headingOffline">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOffline" aria-expanded="false" aria-controls="collapseOffline">
-                                    <i class="bi bi-wifi-off me-2"></i><strong>Шаг 2: Настройка статического пароля (для Офлайн-режима)</strong>
+                                    <i class="bi bi-wifi-off me-2"></i><strong>{{ _("Шаг 2: Настройка статического пароля (для Офлайн-режима)") }}</strong>
                                 </button>
                             </h2>
                             <div id="collapseOffline" class="accordion-collapse collapse" aria-labelledby="headingOffline" data-bs-parent="#yubikeyInstructionsAccordion">
                                 <div class="accordion-body">
-                                    <p class="text-muted">Это позволит входить в приложение без интернета. Настройте этот пароль на всех ваших ключах.</p>
+                                    <p class="text-muted">{{ _("Это позволит входить в приложение без интернета. Настройте этот пароль на всех ваших ключах.") }}</p>
                                      <ol class="list-group list-group-numbered">
                                         <li class="list-group-item">
-                                            <strong>Установите YubiKey Manager</strong> с официального сайта: 
+                                            <strong>{{ _("Установите YubiKey Manager") }}</strong> {{ _("с официального сайта:") }} 
                                             <a href="https://www.yubico.com/support/download/yubikey-manager/" target="_blank">yubico.com/support/download</a>
                                         </li>
                                         <li class="list-group-item">
-                                            <strong>Откройте YubiKey Manager</strong>, вставьте ключ и перейдите в <strong>Applications -> OTP</strong>.
+                                            <strong>{{ _("Откройте YubiKey Manager") }}</strong>{{ _(", вставьте ключ и перейдите в") }} <strong>Applications -> OTP</strong>.
                                         </li>
                                         <li class="list-group-item">
-                                            Рекомендуется использовать второй слот. Нажмите <strong>Configure</strong> напротив <strong>Slot 2 (Long Touch)</strong>.
+                                            {{ _("Рекомендуется использовать второй слот. Нажмите") }} <strong>Configure</strong> {{ _("напротив") }} <strong>Slot 2 (Long Touch)</strong>.
                                         </li>
                                         <li class="list-group-item">
-                                            Выберите тип учетных данных: <strong>Static Password</strong>.
+                                            {{ _("Выберите тип учетных данных:") }} <strong>Static Password</strong>.
                                         </li>
                                          <li class="list-group-item">
-                                            <strong>Сгенерируйте пароль:</strong> Нажмите кнопку с тремя стрелками (⟳) для генерации случайного пароля. Рекомендуемая длина - 32+ символа.
+                                            <strong>{{ _("Сгенерируйте пароль:") }}</strong> {{ _("Нажмите кнопку с тремя стрелками (⟳) для генерации случайного пароля. Рекомендуемая длина - 32+ символа.") }}
                                          </li>
                                         <li class="list-group-item">
-                                            <strong><i class="bi bi-exclamation-triangle-fill text-danger"></i> ВАЖНО: Скопируйте и надежно сохраните</strong> этот пароль. Он понадобится для файла `.env`.
+                                            <strong><i class="bi bi-exclamation-triangle-fill text-danger"></i> {{ _("ВАЖНО: Скопируйте и надежно сохраните") }}</strong> {{ _("этот пароль. Он понадобится для файла `.env`.") }}
                                         </li>
                                          <li class="list-group-item">
-                                            Нажмите <strong>Finish</strong> для записи на ключ.
+                                            {{ _("Нажмите") }} <strong>Finish</strong> {{ _("для записи на ключ.") }}
                                         </li>
                                          <li class="list-group-item">
-                                            <strong>Добавьте сохраненный пароль</strong> в файл `.env` вашего проекта в переменную `YUBIKEY_STATIC_PASSWORDS`. Если паролей несколько, разделите их запятой.
+                                            <strong>{{ _("Добавьте сохраненный пароль") }}</strong> {{ _("в файл `.env` вашего проекта в переменную `YUBIKEY_STATIC_PASSWORDS`. Если паролей несколько, разделите их запятой.") }}
                         </li>
                     </ol>
                                 </div>
@@ -97,7 +97,7 @@
                     <div class="d-grid gap-2 mt-4">
                         <a href="{{ url_for('yubikey_setup') }}" class="btn btn-primary">
                             <i class="bi bi-arrow-left me-2"></i>
-                            Вернуться к настройке
+                            {{ _("Вернуться к настройке") }}
                         </a>
                     </div>
                 </div>

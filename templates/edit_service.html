@@ -1,29 +1,29 @@
 {% extends "layout.html" %}
 
 
-{% block title %}Редактировать AI-сервис{% endblock %}
+{% block title %}{{ _("Редактировать AI-сервис") }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Редактировать: {{ service.name }}</h1>
+    <h1>{{ _("Редактировать:") }} {{ service.name }}</h1>
     <hr>
     <div class="row">
         <div class="col-md-8">
             <form action="{{ url_for('edit_service', service_id=service.id) }}" method="post" enctype="multipart/form-data" id="edit-service-form">
-                <h5 class="mt-4">Основная информация</h5>
+                <h5 class="mt-4">{{ _("Основная информация") }}</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="name" class="form-label">Название сервиса</label>
+                        <label for="name" class="form-label">{{ _("Название сервиса") }}</label>
                         <input type="text" class="form-control" id="name" name="name" value="{{ service.name }}" required>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="provider" class="form-label">Провайдер</label>
+                        <label for="provider" class="form-label">{{ _("Провайдер") }}</label>
                         <input type="text" class="form-control" id="provider" name="provider" value="{{ service.provider }}">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="service_type" class="form-label">Тип сервиса</label>
+                        <label for="service_type" class="form-label">{{ _("Тип сервиса") }}</label>
                         <select class="form-select" id="service_type" name="service_type" required>
                             {% if schema and schema.service_types %}
                                 {% for service_type in schema.service_types %}
@@ -42,33 +42,33 @@
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="status" class="form-label">Статус</label>
+                        <label for="status" class="form-label">{{ _("Статус") }}</label>
                         <select class="form-select" id="status" name="status">
-                            <option value="active" {% if service.status == 'active' %}selected{% endif %}>Активен</option>
-                            <option value="inactive" {% if service.status == 'inactive' %}selected{% endif %}>Неактивен</option>
-                            <option value="trial" {% if service.status == 'trial' %}selected{% endif %}>Пробная версия</option>
-                            <option value="expired" {% if service.status == 'expired' %}selected{% endif %}>Истёк</option>
-                            <option value="cancelled" {% if service.status == 'cancelled' %}selected{% endif %}>Отменён</option>
+                            <option value="active" {% if service.status == 'active' %}selected{% endif %}>{{ _("Активен") }}</option>
+                            <option value="inactive" {% if service.status == 'inactive' %}selected{% endif %}>{{ _("Неактивен") }}</option>
+                            <option value="trial" {% if service.status == 'trial' %}selected{% endif %}>{{ _("Пробная версия") }}</option>
+                            <option value="expired" {% if service.status == 'expired' %}selected{% endif %}>{{ _("Истёк") }}</option>
+                            <option value="cancelled" {% if service.status == 'cancelled' %}selected{% endif %}>{{ _("Отменён") }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="login_url" class="form-label">URL для входа</label>
+                    <label for="login_url" class="form-label">{{ _("URL для входа") }}</label>
                     <input type="url" class="form-control" id="login_url" name="login_url" value="{{ service.login_url }}">
                 </div>
                 <div class="mb-3">
-                    <label for="preferred_oauth_method" class="form-label">Предпочитаемый способ входа</label>
+                    <label for="preferred_oauth_method" class="form-label">{{ _("Предпочитаемый способ входа") }}</label>
                     <select class="form-select" id="preferred_oauth_method" name="preferred_oauth_method">
-                        <option value="">Выберите способ входа...</option>
+                        <option value="">{{ _("Выберите способ входа...") }}</option>
                     </select>
-                    <div class="form-text">Выберите способ входа, который будет отображаться на карточке сервиса</div>                </div>
+                    <div class="form-text">{{ _("Выберите способ входа, который будет отображаться на карточке сервиса") }}</div>                </div>
 
                 <!-- Учетные данные: основной набор + дополнительные аккаунты -->
                 <div class="accordion" id="credentials-accordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="credentials-heading">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#credentials-collapse" aria-expanded="false" aria-controls="credentials-collapse">
-                                <i class="bi bi-key me-2"></i>Учетные данные (несколько аккаунтов)
+                                <i class="bi bi-key me-2"></i>{{ _("Учетные данные (несколько аккаунтов)") }}
                             </button>
                         </h2>
                         <div id="credentials-collapse" class="accordion-collapse collapse" aria-labelledby="credentials-heading" data-bs-parent="#credentials-accordion">
@@ -76,18 +76,18 @@
                                 <!-- Основной набор -->
                                 <div class="border rounded p-3 mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <strong>Основные учетные данные</strong>
+                                        <strong>{{ _("Основные учетные данные") }}</strong>
                                         <span class="badge text-bg-secondary">Primary</span>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label for="username" class="form-label">Имя пользователя/Email</label>
+                                            <label for="username" class="form-label">{{ _("Имя пользователя/Email") }}</label>
                                             <input type="text" class="form-control" id="username" name="username" value="{{ service.credentials.username }}">
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="password" class="form-label">Новый пароль</label>
+                                            <label for="password" class="form-label">{{ _("Новый пароль") }}</label>
                                             <input type="password" class="form-control" id="password" name="password" aria-describedby="passwordHelp">
-                                            <div id="passwordHelp" class="form-text">Оставьте пустым, чтобы не менять.</div>
+                                            <div id="passwordHelp" class="form-text">{{ _("Оставьте пустым, чтобы не менять.") }}</div>
                                         </div>
                                     </div>
 
@@ -95,9 +95,9 @@
 
                                 <!-- Дополнительные аккаунты -->
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <strong>Дополнительные аккаунты</strong>
+                                    <strong>{{ _("Дополнительные аккаунты") }}</strong>
                                     <button type="button" class="btn btn-sm btn-outline-primary" id="add-credential-btn">
-                                        <i class="bi bi-plus-lg"></i> Добавить аккаунт
+                                        <i class="bi bi-plus-lg"></i> {{ _("Добавить аккаунт") }}
                                     </button>
                                 </div>
                                 <div id="extra-credentials-list">
@@ -105,18 +105,18 @@
                                     {% for cred in extras %}
                                     <div class="border rounded p-3 mb-3 extra-credential-item">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>Учетные данные {{ loop.index + 1 }}</span>
+                                            <span>{{ _("Учетные данные") }} {{ loop.index + 1 }}</span>
                                             <button type="button" class="btn btn-sm btn-outline-danger remove-credential-btn"><i class="bi bi-trash"></i></button>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Имя пользователя/Email</label>
+                                                <label class="form-label">{{ _("Имя пользователя/Email") }}</label>
                                             <input type="hidden" name="extra_index[]" value="{{ loop.index0 }}">
                                             <input type="text" class="form-control" name="extra_username[]" value="{{ cred.username_decrypted }}">
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Пароль</label>
-                                                <input type="password" class="form-control" name="extra_password[]" placeholder="Оставьте пустым чтобы не менять">
+                                                <label class="form-label">{{ _("Пароль") }}</label>
+                                                <input type="password" class="form-control" name="extra_password[]" placeholder="{{ _("Оставьте пустым чтобы не менять") }}">
                                             </div>
                                         </div>
 
@@ -127,17 +127,17 @@
                                 <template id="extra-credential-template">
                                     <div class="border rounded p-3 mb-3 extra-credential-item">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>Учетные данные N</span>
+                                            <span>{{ _("Учетные данные N") }}</span>
                                             <button type="button" class="btn btn-sm btn-outline-danger remove-credential-btn"><i class="bi bi-trash"></i></button>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Имя пользователя/Email</label>
+                                                <label class="form-label">{{ _("Имя пользователя/Email") }}</label>
                                                 <input type="hidden" name="extra_index[]" value="">
                                                 <input type="text" class="form-control" name="extra_username[]" value="">
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Пароль</label>
+                                                <label class="form-label">{{ _("Пароль") }}</label>
                                                 <input type="password" class="form-control" name="extra_password[]" value="">
                                             </div>
                                         </div>
@@ -150,24 +150,24 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="additional_info" class="form-label">Дополнительная информация для входа</label>
+                    <label for="additional_info" class="form-label">{{ _("Дополнительная информация для входа") }}</label>
                     <textarea class="form-control" id="additional_info" name="additional_info" rows="2">{{ service.credentials.additional_info }}</textarea>
                 </div>
 
-                <h5 class="mt-4">Подписка и оплата</h5>
+                <h5 class="mt-4">{{ _("Подписка и оплата") }}</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="plan_name" class="form-label">Название плана</label>
+                        <label for="plan_name" class="form-label">{{ _("Название плана") }}</label>
                         <input type="text" class="form-control" id="plan_name" name="plan_name" value="{{ service.subscription.plan_name }}">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="cost_monthly" class="form-label">Стоимость в месяц</label>
+                        <label for="cost_monthly" class="form-label">{{ _("Стоимость в месяц") }}</label>
                         <input type="number" step="0.01" class="form-control" id="cost_monthly" name="cost_monthly" value="{{ service.subscription.cost_monthly }}">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="currency" class="form-label">Валюта</label>
+                        <label for="currency" class="form-label">{{ _("Валюта") }}</label>
                         <select class="form-select" id="currency" name="currency">
                             <option value="USD" {% if service.subscription.currency == 'USD' %}selected{% endif %}>USD</option>
                             <option value="EUR" {% if service.subscription.currency == 'EUR' %}selected{% endif %}>EUR</option>
@@ -176,75 +176,75 @@
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="billing_cycle" class="form-label">Период оплаты</label>
+                        <label for="billing_cycle" class="form-label">{{ _("Период оплаты") }}</label>
                         <select class="form-select" id="billing_cycle" name="billing_cycle">
-                            <option value="monthly" {% if service.subscription.billing_cycle == 'monthly' %}selected{% endif %}>Ежемесячно</option>
-                            <option value="quarterly" {% if service.subscription.billing_cycle == 'quarterly' %}selected{% endif %}>Ежеквартально</option>
-                            <option value="yearly" {% if service.subscription.billing_cycle == 'yearly' %}selected{% endif %}>Ежегодно</option>
-                            <option value="weekly" {% if service.subscription.billing_cycle == 'weekly' %}selected{% endif %}>Еженедельно</option>
+                            <option value="monthly" {% if service.subscription.billing_cycle == 'monthly' %}selected{% endif %}>{{ _("Ежемесячно") }}</option>
+                            <option value="quarterly" {% if service.subscription.billing_cycle == 'quarterly' %}selected{% endif %}>{{ _("Ежеквартально") }}</option>
+                            <option value="yearly" {% if service.subscription.billing_cycle == 'yearly' %}selected{% endif %}>{{ _("Ежегодно") }}</option>
+                            <option value="weekly" {% if service.subscription.billing_cycle == 'weekly' %}selected{% endif %}>{{ _("Еженедельно") }}</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="next_payment_date" class="form-label">Следующий платёж</label>
+                        <label for="next_payment_date" class="form-label">{{ _("Следующий платёж") }}</label>
                         <input type="date" class="form-control" id="next_payment_date" name="next_payment_date" value="{{ service.subscription.next_payment_date }}">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="payment_method" class="form-label">Способ оплаты</label>
+                        <label for="payment_method" class="form-label">{{ _("Способ оплаты") }}</label>
                         <input type="text" class="form-control" id="payment_method" name="payment_method" value="{{ service.subscription.payment_method }}">
                     </div>
                     <div class="col-md-6 mb-3 d-flex align-items-end">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="auto_renewal" name="auto_renewal" {% if service.subscription.auto_renewal %}checked{% endif %}>
                             <label class="form-check-label" for="auto_renewal">
-                                Автопродление
+                                {{ _("Автопродление") }}
                             </label>
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="subscription_notes" class="form-label">Заметки по подписке</label>
+                    <label for="subscription_notes" class="form-label">{{ _("Заметки по подписке") }}</label>
                     <textarea class="form-control" id="subscription_notes" name="subscription_notes" rows="2">{{ service.subscription.notes }}</textarea>
                 </div>
 
-                <h5 class="mt-4">Личный кабинет</h5>
+                <h5 class="mt-4">{{ _("Личный кабинет") }}</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="dashboard_url" class="form-label">URL панели управления</label>
+                        <label for="dashboard_url" class="form-label">{{ _("URL панели управления") }}</label>
                         <input type="url" class="form-control" id="dashboard_url" name="dashboard_url" value="{{ service.personal_cabinet.dashboard_url }}">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="account_email" class="form-label">Email аккаунта</label>
+                        <label for="account_email" class="form-label">{{ _("Email аккаунта") }}</label>
                         <input type="email" class="form-control" id="account_email" name="account_email" value="{{ service.personal_cabinet.account_email }}">
                     </div>
                 </div>
 
-                <h5 class="mt-4">Возможности и настройки</h5>
+                <h5 class="mt-4">{{ _("Возможности и настройки") }}</h5>
                  <div class="mb-3">
-                    <label for="features" class="form-label">Ключевые возможности (через запятую)</label>
+                    <label for="features" class="form-label">{{ _("Ключевые возможности (через запятую)") }}</label>
                     <textarea class="form-control" id="features" name="features" rows="3">{{ service.features | join(', ') }}</textarea>
-                    <div class="form-text">Введите возможности через запятую</div>
+                    <div class="form-text">{{ _("Введите возможности через запятую") }}</div>
                 </div>
 
-                <h5 class="mt-4">Оформление</h5>
+                <h5 class="mt-4">{{ _("Оформление") }}</h5>
                 <div class="row align-items-center">
                     <div class="col-md-6 mb-3">
-                        <label for="icon_filename" class="form-label">Иконка сервиса (заменит текущую)</label>
+                        <label for="icon_filename" class="form-label">{{ _("Иконка сервиса (заменит текущую)") }}</label>
                         <input class="form-control" type="file" id="icon_filename" name="icon_filename" accept="image/*">
                         {% if service.icon_filename %}
                         <div class="mt-2">
-                            <small>Текущая:</small>
+                            <small>{{ _("Текущая:") }}</small>
                             <img src="{{ url_for('uploaded_file', filename=service.icon_filename) }}" alt="icon" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: contain; margin-left: 10px;">
                     </div>
                         {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="gradient_color" class="form-label">Цвет карточки</label>
+                        <label for="gradient_color" class="form-label">{{ _("Цвет карточки") }}</label>
                         <div class="input-group">
                             <input type="color" class="form-control form-control-color" id="gradient_color" name="gradient_color" 
                                    value="{{ service.gradient_color or '#667eea' }}" 
-                                   title="Выберите основной цвет">
+                                   title="{{ _("Выберите основной цвет") }}">
                         </div>
                     </div>
                 </div>
@@ -287,38 +287,38 @@
                 }
                 </script>
 
-                <h5 class="mt-4">Дополнительная информация</h5>
+                <h5 class="mt-4">{{ _("Дополнительная информация") }}</h5>
                 <div class="mb-3">
                     <textarea class="form-control" id="notes" name="notes" rows="3">{{ service.notes }}</textarea>
                 </div>
                 
-                <button type="submit" class="btn btn-primary mt-3">Сохранить изменения</button>
-                <a href="{{ url_for('index', highlight_id=service.id) }}" class="btn btn-secondary mt-3">Отмена</a>
+                <button type="submit" class="btn btn-primary mt-3">{{ _("Сохранить изменения") }}</button>
+                <a href="{{ url_for('index', highlight_id=service.id) }}" class="btn btn-secondary mt-3">{{ _("Отмена") }}</a>
             </form>
         </div>
         <div class="col-md-4">
             <div class="card mt-4">
                 <div class="card-header">
-                    <h5 class="mb-0">📊 Информация о сервисе</h5>
+                    <h5 class="mb-0">{{ _("📊 Информация о сервисе") }}</h5>
                 </div>
                 <div class="card-body">
                     {% if service.created_at %}
-                    <p><strong>Создан:</strong> {{ service.created_at | format_datetime }}</p>
+                    <p><strong>{{ _("Создан:") }}</strong> {{ service.created_at | format_datetime }}</p>
                     {% endif %}
                     {% if service.updated_at %}
-                    <p><strong>Обновлён:</strong> {{ service.updated_at | format_datetime }}</p>
+                    <p><strong>{{ _("Обновлён:") }}</strong> {{ service.updated_at | format_datetime }}</p>
                     {% endif %}
                     
                     <hr>
                     
                     <div class="alert alert-info" role="alert">
-                        <strong>💡 Совет:</strong> Регулярно обновляйте дату следующего платежа для отслеживания расходов
+                        <strong>{{ _("💡 Совет:") }}</strong> {{ _("Регулярно обновляйте дату следующего платежа для отслеживания расходов") }}
                     </div>
                     
                     {% if service.subscription.cost_monthly %}
                     <div class="alert alert-success" role="alert">
-                        <strong>💰 Стоимость:</strong> 
-                        ~{{ (service.subscription.cost_monthly * 12) | round(2) }} {{ service.subscription.currency }} в год
+                        <strong>{{ _("💰 Стоимость:") }}</strong> 
+                        ~{{ (service.subscription.cost_monthly * 12) | round(2) }} {{ service.subscription.currency }} {{ _("в год") }}
                             </div>
                     {% endif %}
                 </div>
@@ -335,7 +335,7 @@ function updateOAuthMethods() {
     const currentValue = '{{ service.preferred_oauth_method if service.preferred_oauth_method else "" }}';
     
     // Очищаем текущие опции
-    select.innerHTML = '<option value="">Выберите способ входа...</option>';
+    select.innerHTML = {{ _("<option value=\"\">Выберите способ входа...</option>")|tojson }};
     
     if (!serviceName) return;
     
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (yearlyCost > 0) {
-            costField.title = `Примерно ${yearlyCost.toFixed(2)} в год`;
+            costField.title = `${ {{ _("Примерно")|tojson }} } ${yearlyCost.toFixed(2)} ${ {{ _("в год")|tojson }} }`;
         }
     }
 
@@ -437,7 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renumber() {
         list.querySelectorAll('.extra-credential-item').forEach((item, idx) => {
             const title = item.querySelector('span');
-            if (title) title.textContent = `Учетные данные ${idx + 1}`;
+            if (title) title.textContent = `${ {{ _("Учетные данные")|tojson }} } ${idx + 1}`;
         });
     }
     if (addBtn && list && tpl) {

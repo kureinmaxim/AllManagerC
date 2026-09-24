@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 from runtime_paths import packaged_data_dir
+from localization import gettext as _, init_localization
 from datetime import date, datetime
 import uuid
 from flask import Flask, render_template, request, redirect, url_for, make_response, send_from_directory, jsonify, flash, abort, session, send_file
@@ -110,6 +111,7 @@ def load_env_file():
 load_env_file()
 
 app = Flask(__name__)
+init_localization(app)
 # Уникальное имя cookie для сессии, чтобы не пересекаться с другими приложениями на 127.0.0.1
 app.config['SESSION_COOKIE_NAME'] = 'allmanagerc_session'
 
@@ -401,7 +403,7 @@ def enforce_authentication_dynamic():
     try:
         # Разрешённые эндпоинты без входа (включая скрытый PIN-вход)
         allowed_endpoints = {
-            'yubikey_login', 'yubikey_instructions',
+            'yubikey_login', 'yubikey_instructions', 'change_language',
             'secret_login', 'change_secret_pin',
             'static', 'help_page', 'about_page', 'set_clipboard', 'shutdown'
         }
@@ -418,7 +420,7 @@ def enforce_authentication_dynamic():
         # Если ключей нет — разрешаем только настройки/мастер и статику
         try:
             if len(yubikey_auth.get_keys()) == 0 and not yubikey_auth.static_passwords:
-                if ep in {'yubikey_setup', 'static', 'secret_login', 'yubikey_login'}:
+                if ep in {'yubikey_setup', 'static', 'secret_login', 'yubikey_login', 'change_language'}:
                     return None
                 session.pop('yubikey_authenticated', None)
                 return redirect('/yubikey/setup')

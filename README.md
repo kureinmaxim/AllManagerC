@@ -51,6 +51,8 @@ The application interface is currently in **Russian**.
 [Published installers](https://github.com/kureinmaxim/AllManagerC/releases) include
 Windows and macOS builds from the **older v5.6.0 release**.
 
+The interface supports Russian, English, and Simplified Chinese. Use the translate icon in the top bar to switch languages; the choice is remembered locally.
+
 The current `main` branch includes subsequent consolidation and fixes. Build from
 source for those changes; the newly built local arm64 DMG has not been uploaded as
 a release. The configuration still says `5.6.0`, so identify source builds by commit.

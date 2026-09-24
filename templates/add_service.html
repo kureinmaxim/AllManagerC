@@ -1,31 +1,31 @@
 {% extends "layout.html" %}
 
 
-{% block title %}Добавить AI-сервис{% endblock %}
+{% block title %}{{ _("Добавить AI-сервис") }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Добавить новый AI-сервис</h1>
+    <h1>{{ _("Добавить новый AI-сервис") }}</h1>
     <hr>
     <div class="row">
         <div class="col-md-8">
             <form action="{{ url_for('add_service') }}" method="post" enctype="multipart/form-data">
-                <h5 class="mt-4">Основная информация</h5>
+                <h5 class="mt-4">{{ _("Основная информация") }}</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="name" class="form-label">Название сервиса</label>
-                        <input type="text" class="form-control" id="name" name="name" required placeholder="Например, ChatGPT Plus">
+                        <label for="name" class="form-label">{{ _("Название сервиса") }}</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="{{ _("Например, ChatGPT Plus") }}">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="provider" class="form-label">Провайдер</label>
-                        <input type="text" class="form-control" id="provider" name="provider" placeholder="Например, OpenAI">
+                        <label for="provider" class="form-label">{{ _("Провайдер") }}</label>
+                        <input type="text" class="form-control" id="provider" name="provider" placeholder="{{ _("Например, OpenAI") }}">
                     </div>
                 </div>
                  <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="service_type" class="form-label">Тип сервиса</label>
+                        <label for="service_type" class="form-label">{{ _("Тип сервиса") }}</label>
                         <select class="form-select" id="service_type" name="service_type" required>
-                            <option value="">Выберите тип</option>
+                            <option value="">{{ _("Выберите тип") }}</option>
                             {% if schema and schema.service_types %}
                                 {% for service_type in schema.service_types %}
                                     <option value="{{ service_type }}">{{ service_type }}</option>
@@ -43,33 +43,33 @@
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="status" class="form-label">Статус</label>
+                        <label for="status" class="form-label">{{ _("Статус") }}</label>
                         <select class="form-select" id="status" name="status">
-                            <option value="active" selected>Активен</option>
-                            <option value="inactive">Неактивен</option>
-                            <option value="trial">Пробная версия</option>
-                            <option value="expired">Истёк</option>
-                            <option value="cancelled">Отменён</option>
+                            <option value="active" selected>{{ _("Активен") }}</option>
+                            <option value="inactive">{{ _("Неактивен") }}</option>
+                            <option value="trial">{{ _("Пробная версия") }}</option>
+                            <option value="expired">{{ _("Истёк") }}</option>
+                            <option value="cancelled">{{ _("Отменён") }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="login_url" class="form-label">URL для входа</label>
+                    <label for="login_url" class="form-label">{{ _("URL для входа") }}</label>
                     <input type="url" class="form-control" id="login_url" name="login_url" placeholder="https://chatgpt.com/login">
                 </div>
                 <div class="mb-3">
-                    <label for="preferred_oauth_method" class="form-label">Предпочитаемый способ входа</label>
+                    <label for="preferred_oauth_method" class="form-label">{{ _("Предпочитаемый способ входа") }}</label>
                     <select class="form-select" id="preferred_oauth_method" name="preferred_oauth_method">
-                        <option value="">Выберите способ входа...</option>
+                        <option value="">{{ _("Выберите способ входа...") }}</option>
                     </select>
-                    <div class="form-text">Выберите способ входа, который будет отображаться на карточке сервиса</div>                </div>
+                    <div class="form-text">{{ _("Выберите способ входа, который будет отображаться на карточке сервиса") }}</div>                </div>
 
                 <!-- Учетные данные: основной набор + дополнительные аккаунты -->
                 <div class="accordion" id="credentials-accordion">
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="credentials-heading">
                             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#credentials-collapse" aria-expanded="false" aria-controls="credentials-collapse">
-                                <i class="bi bi-key me-2"></i>Учетные данные (несколько аккаунтов)
+                                <i class="bi bi-key me-2"></i>{{ _("Учетные данные (несколько аккаунтов)") }}
                             </button>
                         </h2>
                         <div id="credentials-collapse" class="accordion-collapse collapse" aria-labelledby="credentials-heading" data-bs-parent="#credentials-accordion">
@@ -77,16 +77,16 @@
                                 <!-- Основной набор -->
                                 <div class="border rounded p-3 mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <strong>Основные учетные данные</strong>
+                                        <strong>{{ _("Основные учетные данные") }}</strong>
                                         <span class="badge text-bg-secondary">Primary</span>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label for="username" class="form-label">Имя пользователя/Email</label>
+                                            <label for="username" class="form-label">{{ _("Имя пользователя/Email") }}</label>
                                             <input type="text" class="form-control" id="username" name="username" placeholder="user@example.com">
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="password" class="form-label">Пароль</label>
+                                            <label for="password" class="form-label">{{ _("Пароль") }}</label>
                                             <input type="password" class="form-control" id="password" name="password">
                                         </div>
                                     </div>
@@ -95,26 +95,26 @@
 
                                 <!-- Дополнительные аккаунты -->
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <strong>Дополнительные аккаунты</strong>
+                                    <strong>{{ _("Дополнительные аккаунты") }}</strong>
                                     <button type="button" class="btn btn-sm btn-outline-primary" id="add-credential-btn">
-                                        <i class="bi bi-plus-lg"></i> Добавить аккаунт
+                                        <i class="bi bi-plus-lg"></i> {{ _("Добавить аккаунт") }}
                                     </button>
                                 </div>
                                 <div id="extra-credentials-list"></div>
                                 <template id="extra-credential-template">
                                     <div class="border rounded p-3 mb-3 extra-credential-item">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>Учетные данные N</span>
+                                            <span>{{ _("Учетные данные N") }}</span>
                                             <button type="button" class="btn btn-sm btn-outline-danger remove-credential-btn"><i class="bi bi-trash"></i></button>
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Имя пользователя/Email</label>
+                                                <label class="form-label">{{ _("Имя пользователя/Email") }}</label>
                                                 <input type="hidden" name="extra_index[]" value="">
                                                 <input type="text" class="form-control" name="extra_username[]" value="">
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Пароль</label>
+                                                <label class="form-label">{{ _("Пароль") }}</label>
                                                 <input type="password" class="form-control" name="extra_password[]" value="">
                                             </div>
                                         </div>
@@ -127,24 +127,24 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="additional_info" class="form-label">Дополнительная информация для входа</label>
+                    <label for="additional_info" class="form-label">{{ _("Дополнительная информация для входа") }}</label>
                     <textarea class="form-control" id="additional_info" name="additional_info" rows="2"></textarea>
                 </div>
 
-                <h5 class="mt-4">Подписка и оплата</h5>
+                <h5 class="mt-4">{{ _("Подписка и оплата") }}</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="plan_name" class="form-label">Название плана</label>
+                        <label for="plan_name" class="form-label">{{ _("Название плана") }}</label>
                         <input type="text" class="form-control" id="plan_name" name="plan_name" placeholder="Pro Plan, Plus, Premium">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="cost_monthly" class="form-label">Стоимость в месяц</label>
+                        <label for="cost_monthly" class="form-label">{{ _("Стоимость в месяц") }}</label>
                         <input type="number" step="0.01" class="form-control" id="cost_monthly" name="cost_monthly" placeholder="20.00">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="currency" class="form-label">Валюта</label>
+                        <label for="currency" class="form-label">{{ _("Валюта") }}</label>
                         <select class="form-select" id="currency" name="currency">
                             <option value="USD" selected>USD</option>
                             <option value="EUR">EUR</option>
@@ -153,78 +153,78 @@
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="billing_cycle" class="form-label">Период оплаты</label>
+                        <label for="billing_cycle" class="form-label">{{ _("Период оплаты") }}</label>
                         <select class="form-select" id="billing_cycle" name="billing_cycle">
-                            <option value="monthly" selected>Ежемесячно</option>
-                            <option value="quarterly">Ежеквартально</option>
-                            <option value="yearly">Ежегодно</option>
-                            <option value="weekly">Еженедельно</option>
+                            <option value="monthly" selected>{{ _("Ежемесячно") }}</option>
+                            <option value="quarterly">{{ _("Ежеквартально") }}</option>
+                            <option value="yearly">{{ _("Ежегодно") }}</option>
+                            <option value="weekly">{{ _("Еженедельно") }}</option>
                         </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="next_payment_date" class="form-label">Следующий платёж</label>
+                        <label for="next_payment_date" class="form-label">{{ _("Следующий платёж") }}</label>
                         <input type="date" class="form-control" id="next_payment_date" name="next_payment_date">
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="payment_method" class="form-label">Способ оплаты</label>
+                        <label for="payment_method" class="form-label">{{ _("Способ оплаты") }}</label>
                         <input type="text" class="form-control" id="payment_method" name="payment_method" placeholder="Credit Card, PayPal, Bank Transfer">
                     </div>
                     <div class="col-md-6 mb-3 d-flex align-items-end">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="auto_renewal" name="auto_renewal" checked>
                             <label class="form-check-label" for="auto_renewal">
-                                Автопродление
+                                {{ _("Автопродление") }}
                             </label>
                         </div>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label for="subscription_notes" class="form-label">Заметки по подписке</label>
-                    <textarea class="form-control" id="subscription_notes" name="subscription_notes" rows="2" placeholder="Особенности тарифа, лимиты, промокоды"></textarea>
+                    <label for="subscription_notes" class="form-label">{{ _("Заметки по подписке") }}</label>
+                    <textarea class="form-control" id="subscription_notes" name="subscription_notes" rows="2" placeholder="{{ _("Особенности тарифа, лимиты, промокоды") }}"></textarea>
                 </div>
 
-                <h5 class="mt-4">Личный кабинет</h5>
+                <h5 class="mt-4">{{ _("Личный кабинет") }}</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="dashboard_url" class="form-label">URL панели управления</label>
+                        <label for="dashboard_url" class="form-label">{{ _("URL панели управления") }}</label>
                         <input type="url" class="form-control" id="dashboard_url" name="dashboard_url" placeholder="https://platform.openai.com/dashboard">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label for="account_email" class="form-label">Email аккаунта</label>
+                        <label for="account_email" class="form-label">{{ _("Email аккаунта") }}</label>
                         <input type="email" class="form-control" id="account_email" name="account_email" placeholder="account@example.com">
                     </div>
                 </div>
 
-                <h5 class="mt-4">Возможности и настройки</h5>
+                <h5 class="mt-4">{{ _("Возможности и настройки") }}</h5>
                 <div class="mb-3">
-                    <label for="features" class="form-label">Ключевые возможности</label>
-                    <textarea class="form-control" id="features" name="features" rows="3" placeholder="Перечислите основные функции через запятую (например: AI Code Completion, Chat with Codebase, Command Palette AI)"></textarea>
-                    <div class="form-text">Введите возможности через запятую</div>
+                    <label for="features" class="form-label">{{ _("Ключевые возможности") }}</label>
+                    <textarea class="form-control" id="features" name="features" rows="3" placeholder="{{ _("Перечислите основные функции через запятую (например: AI Code Completion, Chat with Codebase, Command Palette AI)") }}"></textarea>
+                    <div class="form-text">{{ _("Введите возможности через запятую") }}</div>
                 </div>
 
-                <h5 class="mt-4">Оформление</h5>
+                <h5 class="mt-4">{{ _("Оформление") }}</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="icon_filename" class="form-label">Иконка сервиса</label>
+                        <label for="icon_filename" class="form-label">{{ _("Иконка сервиса") }}</label>
                         <input class="form-control" type="file" id="icon_filename" name="icon_filename" accept="image/*">
                     </div>
                 </div>
 
-                <h5 class="mt-4">Дополнительная информация</h5>
+                <h5 class="mt-4">{{ _("Дополнительная информация") }}</h5>
                 <div class="mb-3">
-                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Общие заметки, особенности использования, полезные ссылки"></textarea>
+                    <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="{{ _("Общие заметки, особенности использования, полезные ссылки") }}"></textarea>
                 </div>
                 
-                <button type="submit" class="btn btn-primary mt-3">Сохранить AI-сервис</button>
-                <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Отмена</a>
+                <button type="submit" class="btn btn-primary mt-3">{{ _("Сохранить AI-сервис") }}</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">{{ _("Отмена") }}</a>
             </form>
         </div>
         <div class="col-md-4">
             <div class="card mt-4">
                 <div class="card-header">
-                    <h5 class="mb-0">💡 Полезные советы</h5>
+                    <h5 class="mb-0">{{ _("💡 Полезные советы") }}</h5>
                 </div>
                 <div class="card-body">
                     <h6 class="text-primary">🤖 AI Development Tools</h6>
@@ -244,11 +244,11 @@
                     <hr>
                     
                     <div class="alert alert-light" role="alert">
-                        <strong>💡 Совет:</strong> Для API-ключей используйте поле "Дополнительная информация для входа"
+                        <strong>{{ _("💡 Совет:") }}</strong> {{ _("Для API-ключей используйте поле \"Дополнительная информация для входа\"") }}
                     </div>
 
                     <div class="alert alert-warning" role="alert">
-                        <strong>🔐 Безопасность:</strong> Все пароли автоматически шифруются при сохранении
+                        <strong>{{ _("🔐 Безопасность:") }}</strong> {{ _("Все пароли автоматически шифруются при сохранении") }}
                     </div>
                 </div>
             </div>
@@ -263,7 +263,7 @@ function updateOAuthMethods() {
     const select = document.getElementById('preferred_oauth_method');
 
     // Очищаем текущие опции
-    select.innerHTML = '<option value="">Выберите способ входа...</option>';
+    select.innerHTML = {{ _("<option value=\"\">Выберите способ входа...</option>")|tojson }};
 
     if (!serviceName) return;
 
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (yearlyCost > 0) {
             const currencySymbol = currency === 'RUB' ? '' : '$';
-            costField.title = `Примерно ${currencySymbol}${yearlyCost.toFixed(2)} в год`;
+            costField.title = `${ {{ _("Примерно")|tojson }} } ${currencySymbol}${yearlyCost.toFixed(2)} ${ {{ _("в год")|tojson }} }`;
         }
     }
     
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renumber() {
         list.querySelectorAll('.extra-credential-item').forEach((item, idx) => {
             const title = item.querySelector('span');
-            if (title) title.textContent = `Учетные данные ${idx + 1}`;
+            if (title) title.textContent = `${ {{ _("Учетные данные")|tojson }} } ${idx + 1}`;
         });
     }
     if (addBtn && list && tpl) {

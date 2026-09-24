@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %}Вход YubiKey - AI Manager{% endblock %}
+{% block title %}{{ _("Вход YubiKey - AllManagerC") }}{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -14,25 +14,25 @@
                             <circle cx="10" cy="9" r="3" fill="#ffffff"/>
                             <rect x="17" y="9" width="4" height="6" rx="1" ry="1" fill="#95a5a6"/>
                         </svg>
-                        <h3 class="mt-3">YubiKey Вход</h3>
-                        <p class="text-muted">Для доступа к приложению подтвердите ваш YubiKey.</p>
+                        <h3 class="mt-3">{{ _("YubiKey Вход") }}</h3>
+                        <p class="text-muted">{{ _("Для доступа к приложению подтвердите ваш YubiKey.") }}</p>
                     </div>
 
                     {% if is_online %}
                     <div class="alert alert-info mb-4">
-                        <h6 class="alert-heading"><i class="bi bi-wifi me-2"></i>Онлайн-режим</h6>
+                        <h6 class="alert-heading"><i class="bi bi-wifi me-2"></i>{{ _("Онлайн-режим") }}</h6>
                         <ol class="mb-0 ps-3 small">
-                            <li>Вставьте YubiKey в USB-порт.</li>
-                            <li><b>Коротко коснитесь</b> золотого контакта на ключе.</li>
-                            <li>Код будет вставлен автоматически.</li>
+                            <li>{{ _("Вставьте YubiKey в USB-порт.") }}</li>
+                            <li><b>{{ _("Коротко коснитесь") }}</b> {{ _("золотого контакта на ключе.") }}</li>
+                            <li>{{ _("Код будет вставлен автоматически.") }}</li>
                         </ol>
                     </div>
                     {% else %}
                     <div class="alert alert-warning mb-4">
-                        <h6 class="alert-heading"><i class="bi bi-wifi-off me-2"></i>Офлайн-режим</h6>
+                        <h6 class="alert-heading"><i class="bi bi-wifi-off me-2"></i>{{ _("Офлайн-режим") }}</h6>
                         <ol class="mb-0 ps-3 small">
-                            <li>Интернет-соединение отсутствует.</li>
-                            <li>Для входа используйте <b>длинное нажатие</b> (2-3 сек) на YubiKey для ввода статического пароля.</li>
+                            <li>{{ _("Интернет-соединение отсутствует.") }}</li>
+                            <li>{{ _("Для входа используйте") }} <b>{{ _("длинное нажатие") }}</b> {{ _("(2-3 сек) на YubiKey для ввода статического пароля.") }}</li>
                         </ol>
                     </div>
                     {% endif %}
@@ -51,21 +51,21 @@
                     <form method="post" id="otpForm" novalidate>
                         <div class="mb-3">
                             <label for="otp" class="form-label">YubiKey OTP</label>
-                            <input type="text" name="otp" id="otp" class="form-control form-control-lg" placeholder="Нажмите кнопку на YubiKey (раскладка EN)" required autofocus maxlength="64" autocomplete="one-time-code" inputmode="verbatim">
-                            <div class="form-text" id="otpHint">В онлайн‑режиме принимается 44 символа ModHex (только c,b,d,e,f,g,h,i,j,k,l,n,r,t,u,v). Проверьте, что включена английская раскладка.</div>
-                            <div class="invalid-feedback" id="otpError">Введите корректный OTP (44 символа ModHex, раскладка EN).</div>
+                            <input type="text" name="otp" id="otp" class="form-control form-control-lg" placeholder="{{ _("Нажмите кнопку на YubiKey (раскладка EN)") }}" required autofocus maxlength="64" autocomplete="one-time-code" inputmode="verbatim">
+                            <div class="form-text" id="otpHint">{{ _("В онлайн‑режиме принимается 44 символа ModHex (только c,b,d,e,f,g,h,i,j,k,l,n,r,t,u,v). Проверьте, что включена английская раскладка.") }}</div>
+                            <div class="invalid-feedback" id="otpError">{{ _("Введите корректный OTP (44 символа ModHex, раскладка EN).") }}</div>
                         </div>
                         {% if is_dev and allowed_public_ids %}
                         <div class="alert alert-secondary py-2 small">
-                            Разрешённые public id: {{ allowed_public_ids|join(', ') }}
+                            {{ _("Разрешённые public id:") }} {{ allowed_public_ids|join(', ') }}
                         </div>
                         {% endif %}
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">Войти</button>
+                            <button type="submit" class="btn btn-primary btn-lg">{{ _("Войти") }}</button>
                         </div>
                     </form>
                     <div class="text-center mt-3">
-                        <a href="{{ url_for('yubikey_instructions') }}" class="text-muted small">Инструкция по настройке</a>
+                        <a href="{{ url_for('yubikey_instructions') }}" class="text-muted small">{{ _("Инструкция по настройке") }}</a>
                     </div>
                 </div>
             </div>
@@ -112,8 +112,8 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             setInvalid(true);
             otpError.textContent = CYRILLIC_RE.test(value)
-                ? 'Раскладка не EN. Введите 44 символа ModHex (только c,b,d,e,f,g,h,i,j,k,l,n,r,t,u,v).'
-                : 'Неверный формат. Нужны ровно 44 символа ModHex.';
+                ? {{ _("Раскладка не EN. Введите 44 символа ModHex (только c,b,d,e,f,g,h,i,j,k,l,n,r,t,u,v).")|tojson }}
+                : {{ _("Неверный формат. Нужны ровно 44 символа ModHex.")|tojson }};
             otpInput.focus();
         }
     });

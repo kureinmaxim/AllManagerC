@@ -1,5 +1,11 @@
 #define MyAppName "AllManagerC"
-#define MyAppVersion "6.0.1"
+#define MyAppVersion "6.0.3"
+#ifndef BuildDir
+#define BuildDir "dist\\AllManagerC"
+#endif
+#ifndef InstallerDir
+#define InstallerDir "dist"
+#endif
 #define MyAppPublisher "AI Manager Team"
 #define MyAppURL "https://example.local"
 #define MyAppExeName "AllManagerC.exe"
@@ -11,8 +17,8 @@ AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-OutputDir=dist
-OutputBaseFilename=AllManagerC_Installer
+OutputDir={#InstallerDir}
+OutputBaseFilename=AllManagerC_Installer_v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible
@@ -27,7 +33,7 @@ Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Files]
 ; основная сборка PyInstaller
-Source: "dist\AllManagerC\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "{#BuildDir}\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 ; иконка для ярлыков
 Source: "static\images\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 

@@ -3,6 +3,7 @@ import os
 import sys
 from pathlib import Path
 from runtime_paths import packaged_data_dir
+from app_version import VERSION as APP_VERSION
 from localization import gettext as _, init_localization
 from datetime import date, datetime
 import uuid
@@ -244,8 +245,14 @@ elif bundle_config is not None and user_config is not None:
     bundle_version = bundle_config.get('app_info', {}).get('version', '0.0.0')
     user_version = user_config.get('app_info', {}).get('version', '0.0.0')
 
-    # Простое сравнение версий (можно заменить на более сложное, если нужно)
-    if bundle_version > user_version:
+    def numeric_version(value):
+        try:
+            parts = tuple(int(part) for part in value.split('.'))
+            return parts if len(parts) == 3 else (0, 0, 0)
+        except (ValueError, AttributeError):
+            return (0, 0, 0)
+
+    if numeric_version(bundle_version) > numeric_version(user_version):
         print(f"Найдена новая версия ({bundle_version} > {user_version}). Обновление конфига.")
         # Обновляем информацию о приложении, сохраняя остальные настройки пользователя
         user_config['app_info'] = bundle_config['app_info']
@@ -272,22 +279,9 @@ else:
 app.config.update(final_config)
 
 
-# Если `app_info` все еще отсутствует (например, при самом первом запуске в dev), добавляем заглушку
-if 'app_info' not in app.config:
-    # Пытаемся загрузить версию из config.json
-    try:
-        with open('config.json', 'r', encoding='utf-8') as f:
-            config = json.load(f)
-            version = config.get('app_info', {}).get('version', '6.0.1')
-            developer = config.get('app_info', {}).get('developer', 'AI Manager Team')
-    except:
-        version = '6.0.1'
-        developer = 'AI Manager Team'
-    app.config['app_info'] = {
-        "version": "N/A",
-        "last_updated": "N/A",
-        "developer": "N/A"
-    }
+# Version belongs to the running build, not to a mutable user profile.
+app.config.setdefault('app_info', {})['version'] = APP_VERSION
+app.config['app_info'].setdefault('developer', 'AI Manager Team')
 
 # Добавим фильтр для Jinja2
 def format_datetime_filter(iso_str):
@@ -1662,7 +1656,7 @@ def export_data():
     """Отдает текущий активный файл данных для скачивания."""
     active_file = get_active_data_path()
     if not active_file or not os.path.exists(active_file):
-        flash('Нет активного файла данных для экспорта.', 'warning')
+        flash(_('Нет активного файла данных для экспорта.'), 'warning')
         return redirect('/settings')
     
     # Для PyWebView создаем копию файла в папке Downloads для удобного доступа
@@ -1676,7 +1670,7 @@ def export_data():
         import shutil
         shutil.copy2(active_file, export_path)
         
-        flash(f'✅ Файл данных экспортирован как: {export_filename} в папку Downloads', 'success')
+        flash(_('✅ Файл данных экспортирован как: %(value1)s в папку Downloads', value1=export_filename), 'success')
         
         return send_from_directory(
                 export_dir, 
@@ -1684,7 +1678,7 @@ def export_data():
         as_attachment=True
     )
     except Exception as e:
-        flash(f'Ошибка при экспорте: {str(e)}', 'danger')
+        flash(_('Ошибка при экспорте: %(value1)s', value1=str(e)), 'danger')
         return redirect('/settings')
 
 @app.route('/data/export_key')
@@ -1702,7 +1696,7 @@ def export_key():
             f.write(f"SECRET_KEY={SECRET_KEY}\n")
             f.write(f"FLASK_SECRET_KEY=portable_app_key\n")
         
-        flash(f'✅ Ключ шифрования экспортирован как: {key_filename} в папку Downloads', 'success')
+        flash(_('✅ Ключ шифрования экспортирован как: %(value1)s в папку Downloads', value1=key_filename), 'success')
         
         return send_from_directory(
             export_dir,
@@ -1710,7 +1704,7 @@ def export_key():
             as_attachment=True
         )
     except Exception as e:
-        flash(f'Ошибка при экспорте ключа: {str(e)}', 'danger')
+        flash(_('Ошибка при экспорте ключа: %(value1)s', value1=str(e)), 'danger')
         return redirect('/settings')
 
 @app.route('/data/export_package')
@@ -1723,7 +1717,7 @@ def export_package():
         # Проверяем наличие активного файла данных
         active_file = get_active_data_path()
         if not active_file or not os.path.exists(active_file):
-            flash('Нет активного файла данных для экспорта.', 'warning')
+            flash(_('Нет активного файла данных для экспорта.'), 'warning')
             return redirect('/settings')
         
         # Создаем ZIP файл в папке Downloads
@@ -1771,7 +1765,7 @@ def export_package():
 """
             zipf.writestr("README.txt", readme_content)
         
-        flash(f'✅ Полный архив создан как: {zip_filename} в папке Downloads', 'success')
+        flash(_('✅ Полный архив создан как: %(value1)s в папке Downloads', value1=zip_filename), 'success')
         
         # Отправляем ZIP файл
         return send_from_directory(
@@ -1781,7 +1775,7 @@ def export_package():
         )
         
     except Exception as e:
-        flash(f'Ошибка при создании архива: {str(e)}', 'danger')
+        flash(_('Ошибка при создании архива: %(value1)s', value1=str(e)), 'danger')
         return redirect('/settings')
 
 @app.route('/data/import', methods=['POST'])
@@ -1830,11 +1824,11 @@ def import_data():
                 with open(file_path, 'wb') as f:
                     f.write(encrypted_data)
                 
-                flash('Файл данных успешно импортирован и прикреплен!', 'success')
+                flash(_('Файл данных успешно импортирован и прикреплен!'), 'success')
             except (InvalidToken, json.JSONDecodeError, Exception) as e:
                 # Удаляем файл, если он не может быть расшифрован
                 os.remove(file_path)
-                flash('Ошибка: файл не может быть расшифрован или поврежден. Возможно, он создан с другим ключом.', 'danger')
+                flash(_('Ошибка: файл не может быть расшифрован или поврежден. Возможно, он создан с другим ключом.'), 'danger')
                 return redirect('/settings')
             
             # Обновляем конфигурацию для использования нового файла
@@ -1842,9 +1836,9 @@ def import_data():
             save_app_config()
             return redirect('/settings')
         else:
-            flash('Неверный тип файла. Пожалуйста, выберите файл .enc', 'danger')
+            flash(_('Неверный тип файла. Пожалуйста, выберите файл .enc'), 'danger')
     except Exception as e:
-        flash(f'Ошибка при импорте файла: {str(e)}', 'danger')
+        flash(_('Ошибка при импорте файла: %(value1)s', value1=str(e)), 'danger')
     return redirect('/settings')
 
 @app.route('/data/import_external', methods=['POST'])
@@ -1855,11 +1849,11 @@ def import_external_data():
         external_key = request.form.get('external_key', '').strip()
         
         if not uploaded_file or not external_key:
-            flash('Необходимо выбрать файл и указать внешний ключ шифрования.', 'danger')
+            flash(_('Необходимо выбрать файл и указать внешний ключ шифрования.'), 'danger')
             return redirect('/settings')
             
         if not uploaded_file.filename.endswith('.enc'):
-            flash('Неверный тип файла. Пожалуйста, выберите файл .enc', 'danger')
+            flash(_('Неверный тип файла. Пожалуйста, выберите файл .enc'), 'danger')
             return redirect('/settings')
         
         # Проверяем формат ключа (должен быть в формате Fernet)
@@ -1868,7 +1862,7 @@ def import_external_data():
             # Это лучше, чем проверка префикса, так как ключи могут иметь разные префиксы
             test_fernet = Fernet(external_key.encode())
         except Exception:
-            flash('Неверный формат ключа шифрования. Ключ должен быть действительным ключом Fernet.', 'danger')
+            flash(_('Неверный формат ключа шифрования. Ключ должен быть действительным ключом Fernet.'), 'danger')
             return redirect('/settings')
         
         # Создаем временный файл для проверки
@@ -1973,26 +1967,26 @@ def import_external_data():
             
             # Информируем пользователя о результате
             if new_servers:
-                message = f'Успешно импортировано {len(new_servers)} новых серверов!'
+                message = _('Успешно импортировано %(value1)s новых серверов!', value1=len(new_servers))
                 if skipped_count > 0:
-                    message += f' Пропущено {skipped_count} дублирующихся серверов.'
+                    message += _(' Пропущено %(value1)s дублирующихся серверов.', value1=skipped_count)
                 flash(message, 'success')
             else:
-                flash('Все сервера из импортируемого файла уже существуют в вашем списке.', 'info')
+                flash(_('Все сервера из импортируемого файла уже существуют в вашем списке.'), 'info')
             
         except InvalidToken:
-            flash('Ошибка: неверный ключ шифрования. Проверьте правильность введенного ключа.', 'danger')
+            flash(_('Ошибка: неверный ключ шифрования. Проверьте правильность введенного ключа.'), 'danger')
         except json.JSONDecodeError:
-            flash('Ошибка: файл содержит некорректные данные.', 'danger')
+            flash(_('Ошибка: файл содержит некорректные данные.'), 'danger')
         except Exception as e:
-            flash(f'Ошибка при импорте: {str(e)}', 'danger')
+            flash(_('Ошибка при импорте: %(value1)s', value1=str(e)), 'danger')
         finally:
             # Удаляем временный файл
             if os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
                 
     except Exception as e:
-        flash(f'Ошибка при обработке файла: {str(e)}', 'danger')
+        flash(_('Ошибка при обработке файла: %(value1)s', value1=str(e)), 'danger')
     
     return redirect('/settings')
 
@@ -2002,7 +1996,7 @@ def detach_data():
     if app.config.get('active_data_file'):
         app.config['active_data_file'] = None
         save_app_config()
-        flash('Файл данных успешно откреплен.', 'info')
+        flash(_('Файл данных успешно откреплен.'), 'info')
     
     return redirect('/')
 
@@ -2031,19 +2025,19 @@ def change_main_key():
         
         # Проверяем, что ключи совпадают
         if new_key != confirm_key:
-            flash('Ошибка: ключи не совпадают.', 'danger')
+            flash(_('Ошибка: ключи не совпадают.'), 'danger')
             return redirect('/settings')
         
         # Проверяем формат нового ключа
         if not new_key:
-            flash('Ошибка: новый ключ не может быть пустым.', 'danger')
+            flash(_('Ошибка: новый ключ не может быть пустым.'), 'danger')
             return redirect('/settings')
             
         try:
             # Проверяем, что новый ключ корректный для Fernet
             test_fernet = Fernet(new_key.encode())
         except Exception:
-            flash('Ошибка: некорректный формат ключа. Ключ должен быть в формате Fernet.', 'danger')
+            flash(_('Ошибка: некорректный формат ключа. Ключ должен быть в формате Fernet.'), 'danger')
             return redirect('/settings')
         
         # Загружаем текущие данные с существующим ключом
@@ -2132,7 +2126,7 @@ def change_main_key():
             app.config['active_data_file'] = new_file_path
             save_app_config()
             
-            flash(f'✅ Ключ успешно изменен! Создан новый файл данных: {new_filename}. Резервная копия сохранена как: {backup_filename}', 'success')
+            flash(_('✅ Ключ успешно изменен! Создан новый файл данных: %(value1)s. Резервная копия сохранена как: %(value2)s', value1=new_filename, value2=backup_filename), 'success')
             
         except Exception as e:
             # Откатываем ВСЕ изменения в случае ошибки
@@ -2158,10 +2152,10 @@ def change_main_key():
                 with open(fallback_env_file, 'w') as f:
                     f.writelines(old_env_lines)
             
-            flash(f'Ошибка при перешифровке данных: {str(e)}. Изменения отменены.', 'danger')
+            flash(_('Ошибка при перешифровке данных: %(value1)s. Изменения отменены.', value1=str(e)), 'danger')
             
     except Exception as e:
-        flash(f'Ошибка при смене ключа: {str(e)}', 'danger')
+        flash(_('Ошибка при смене ключа: %(value1)s', value1=str(e)), 'danger')
     
     return redirect('/settings')
 
@@ -2174,18 +2168,18 @@ def verify_key_data():
         test_key = request.form.get('verify_key', '').strip()
         
         if not uploaded_file or not test_key:
-            flash('Необходимо выбрать файл и указать ключ для проверки.', 'danger')
+            flash(_('Необходимо выбрать файл и указать ключ для проверки.'), 'danger')
             return redirect('/settings')
         
         if not uploaded_file.filename.endswith('.enc'):
-            flash('Неверный тип файла. Выберите файл .enc', 'danger')
+            flash(_('Неверный тип файла. Выберите файл .enc'), 'danger')
             return redirect('/settings')
         
         # Проверяем формат ключа
         try:
             test_fernet = Fernet(test_key.encode())
         except Exception:
-            flash('❌ Некорректный формат ключа Fernet.', 'danger')
+            flash(_('❌ Некорректный формат ключа Fernet.'), 'danger')
             return redirect('/settings')
         
         # Читаем файл
@@ -2211,24 +2205,24 @@ def verify_key_data():
                         if 'name' in server:
                             server_names.append(server['name'])
                 
-                provider_list = ', '.join(sorted(providers)) if providers else 'Не указано'
+                provider_list = ', '.join(sorted(providers)) if providers else _('Не указано')
                 name_preview = ', '.join(server_names[:3])
                 if len(server_names) > 3:
-                    name_preview += f' и еще {len(server_names) - 3}'
+                    name_preview += _(' и еще %(count)s', count=len(server_names) - 3)
                 
-                flash(f'✅ Ключ подходит! Найдено серверов: {server_count}. Провайдеры: {provider_list}. Серверы: {name_preview}', 'success')
+                flash(_('✅ Ключ подходит! Найдено серверов: %(value1)s. Провайдеры: %(value2)s. Серверы: %(value3)s', value1=server_count, value2=provider_list, value3=name_preview), 'success')
             else:
-                flash('✅ Ключ подходит, но структура данных неожиданная.', 'warning')
+                flash(_('✅ Ключ подходит, но структура данных неожиданная.'), 'warning')
                 
         except InvalidToken:
-            flash('❌ Ключ не подходит к этому файлу данных.', 'danger')
+            flash(_('❌ Ключ не подходит к этому файлу данных.'), 'danger')
         except json.JSONDecodeError:
-            flash('❌ Файл расшифрован, но содержит некорректные JSON данные.', 'danger')
+            flash(_('❌ Файл расшифрован, но содержит некорректные JSON данные.'), 'danger')
         except Exception as e:
-            flash(f'❌ Ошибка при проверке: {str(e)}', 'danger')
+            flash(_('❌ Ошибка при проверке: %(value1)s', value1=str(e)), 'danger')
             
     except Exception as e:
-        flash(f'Ошибка при обработке файла: {str(e)}', 'danger')
+        flash(_('Ошибка при обработке файла: %(value1)s', value1=str(e)), 'danger')
     
     return redirect('/settings')
 
@@ -2583,7 +2577,7 @@ if __name__ == "__main__":
         flask_thread.start()
         
         # Ждём, пока сервер поднимется и задаст порт
-        for _ in range(100):
+        for startup_attempt in range(100):
             if SERVER_PORT:
                 break
             time.sleep(0.05)

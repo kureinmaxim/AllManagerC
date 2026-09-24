@@ -1,0 +1,26 @@
+name: Version consistency
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Check synchronized versions
+        run: python scripts/version.py check
+      - name: Test version management
+        run: python -m unittest discover -s tests -p test_version_management.py -v
+      - name: Check release tag
+        if: github.ref_type == 'tag'
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python scripts/version.py check --tag "$RELEASE_TAG"

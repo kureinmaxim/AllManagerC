@@ -2,9 +2,11 @@ import os
 import json
 import subprocess
 from pathlib import Path
-from datetime import datetime
 import sys
 import platform
+import argparse
+from datetime import datetime
+import shutil
 
 # Для корректной работы с кириллицей в Windows
 if platform.system() == 'Windows':
@@ -21,17 +23,9 @@ ICON_ICO = ICON_DIR / 'icon.ico'
 ICON_PNG = ICON_DIR / 'ALLc.png'
 ICON_ICO_PREFERRED = ICON_DIR / 'icon.ico'
 
-def update_config_date():
-    try:
-        if CONFIG_FILE.exists():
-            data = json.loads(CONFIG_FILE.read_text(encoding='utf-8'))
-            data.setdefault('app_info', {})
-            data['app_info']['last_updated'] = datetime.now().strftime('%Y-%m-%d')
-            CONFIG_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
-            return data.get('app_info', {}).get('version', '0.0.0')
-    except Exception:
-        pass
-    return '0.0.0'
+def read_project_version():
+    # Version and release dates are managed by scripts/version.py.
+    return json.loads(CONFIG_FILE.read_text(encoding='utf-8'))['app_info']['version']
 
 def ensure_icon_ico():
     """Готовит icon.ico: если уже есть static/images/icon.ico — используем; иначе пробуем сгенерировать из ALLc.png."""
@@ -60,12 +54,32 @@ def ensure_icon_ico():
         print(f"[icons] Ошибка создания icon.ico: {e}")
         return False
 
-def build():
+def find_iscc():
+    candidates = [os.environ.get('ISCC'), r'C:\Program Files (x86)\Inno Setup 6\ISCC.exe', r'C:\Program Files\Inno Setup 6\ISCC.exe']
+    return next((Path(v) for v in candidates if v and Path(v).exists()), None)
+
+def build(args):
+    subprocess.run([sys.executable, str(PROJECT_ROOT / 'scripts/version.py'), 'check'], check=True)
+    version = read_project_version()
     DIST_DIR.mkdir(exist_ok=True)
+    if args.clean_all:
+        for item in DIST_DIR.iterdir():
+            shutil.rmtree(item) if item.is_dir() and not item.is_symlink() else item.unlink()
+        print(f'Cleaned all generated builds from {DIST_DIR}')
+        return
+    if args.clean:
+        keep = (DIST_DIR / 'latest').resolve() if (DIST_DIR / 'latest').is_symlink() else None
+        for item in DIST_DIR.iterdir():
+            if item.name not in ('latest',) and item.resolve() != keep:
+                shutil.rmtree(item) if item.is_dir() and not item.is_symlink() else item.unlink()
+        print(f'Cleaned old Windows builds from {DIST_DIR}; latest preserved')
+        return
     BUILD_DIR.mkdir(exist_ok=True)
+    output = DIST_DIR / f'AllManagerC-{version}-windows-{datetime.now():%Y%m%d-%H%M%S}'
+    app_dist = output / 'app'
+    app_dist.mkdir(parents=True)
 
-    version = update_config_date()
-
+    # Готовим иконку
     # Готовим иконку
     icon_ok = ensure_icon_ico()
 
@@ -109,8 +123,8 @@ def build():
         "--name=AllManagerC",
         "--noconfirm",
         "--clean",
-        "--distpath=dist",
-        "--workpath=build",
+        f"--distpath={app_dist}",
+        f"--workpath={BUILD_DIR / version}",
         "--noupx",
         "--debug=all",
         *[f"--add-data={d}" for d in datas],
@@ -125,7 +139,26 @@ def build():
     rc = subprocess.call(cmd)
     if rc != 0:
         raise SystemExit(rc)
-    print(f"✅ Build complete. Version: {version}. Output: dist\\AllManagerC\\")
+    iscc = find_iscc()
+    if not iscc:
+        raise RuntimeError('Inno Setup 6 not found. Install it or set ISCC to ISCC.exe.')
+    subprocess.run([str(iscc), str(PROJECT_ROOT / 'AllManagerC.iss'), f'/DMyAppVersion={version}', f'/DBuildDir={app_dist}', f'/DInstallerDir={output}'], check=True)
+    installer = output / f'AllManagerC_Installer_v{version}.exe'
+    latest = DIST_DIR / 'latest'
+    if latest.exists() or latest.is_symlink():
+        latest.unlink() if latest.is_symlink() or latest.is_file() else shutil.rmtree(latest)
+    shutil.copytree(output, latest)
+    (output / 'build-info.json').write_text(json.dumps({'version': version, 'installer': installer.name, 'built_at': datetime.now().astimezone().isoformat()}, indent=2) + '\n', encoding='utf-8')
+    print(f'✅ Build complete. Version: {version}. Output: {output}')
 
 if __name__ == "__main__":
-    build()
+    parser = argparse.ArgumentParser(description='Build AllManagerC for Windows with automatic versioned output.')
+    parser.add_argument('--clean', action='store_true')
+    parser.add_argument('--clean-all', action='store_true')
+    parser.add_argument('--check', action='store_true')
+    args = parser.parse_args()
+    if args.check:
+        subprocess.run([sys.executable, str(PROJECT_ROOT / 'scripts/version.py'), 'check'], check=True)
+        print('Ready for Windows build:', read_project_version())
+    else:
+        build(args)

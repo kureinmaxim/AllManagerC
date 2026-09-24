@@ -2,6 +2,8 @@
 
 Language: **English** · [Русский](README_ru.md)
 
+[![Source version](https://img.shields.io/badge/version-6.0.3-blue?style=flat-square)](VERSION_MANAGEMENT.md)
+
 <p align="center">
   <img src="static/images/ALLc.png" alt="AllManagerC" width="160">
 </p>
@@ -48,10 +50,12 @@ Russian is the default interface language. English and Simplified Chinese transl
 
 ## Get the app
 
+See [Version management](VERSION_MANAGEMENT.md) for version checks and release commands.
+
 [Published installers](https://github.com/kureinmaxim/AllManagerC/releases) include
 Windows and macOS builds from the older **v5.6.0 release**. Version **6.0.0** is available in source; its installers have not yet been published as a GitHub Release.
 
-Use the translate icon in the top bar to switch between Russian, English, and Simplified Chinese; the choice is remembered locally. English and Chinese currently cover core navigation and service-card labels; untranslated text falls back to Russian.
+Use the translate icon in the top bar to switch between Russian, English, and Simplified Chinese; the choice is remembered locally. English and Chinese cover navigation, service-card labels, Settings, Help, and About, including settings validation messages. Other sections still contain untranslated text that falls back to Russian.
 
 The release includes the consolidated codebase and the multilingual interface.
 
@@ -178,7 +182,7 @@ tests are in `tests/`.
 - [Project consolidation](docs/UNIFICATION.md) · Russian
 - [Changelog](CHANGELOG.md) · Russian
 
-Historical material in `docs/legacy/` may describe older behavior.
+Historical material in `docs/` may describe older behavior.
 Questions and bugs: [GitHub Issues](https://github.com/kureinmaxim/AllManagerC/issues).
 For vulnerabilities, follow the security policy.
 

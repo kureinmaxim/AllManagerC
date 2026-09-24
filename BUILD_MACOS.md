@@ -1,181 +1,125 @@
-# Сборка AllManagerC для этого Mac
+# Сборка AllManagerC на macOS
 
-Проверено 23 сентября 2026: macOS 26.6.2, Apple Silicon arm64,
-Python 3.13.9, PyInstaller 6.16.0. Собираем объединённый проект из AiManage-Clean.
+Сборка теперь не требует ручного ввода версии и имени папки. Версия берётся из `config.json`, проверяется скриптом контроля версий, а результат получает уникальное имя с версией, архитектурой и временем сборки.
 
-## 1. Проверить окружение
+## Быстрый запуск
 
-Из папки AiManage-Clean:
+После однократной настройки запускайте из корня проекта:
 
 ```bash
-uname -m
-xcode-select -p
-.venv/bin/python -c 'import flask, webview, AppKit, WebKit, PIL, PyInstaller; print(PyInstaller.__version__)'
+./build_macos.sh --open
 ```
 
-В этом проекте рабочее окружение `.venv` уже есть. Для нового Mac создайте его
-и установите зависимости (добавка Qt на macOS не нужна):
+Или откройте двойным щелчком `build_macos.command`. После успешной сборки Finder откроет папку результата.
+
+В папке `dist` всегда остаётся понятная структура:
+
+- `AllManagerC-<версия>-<архитектура>-<дата-время>/` — отдельный полный результат;
+- `dist/latest` — ссылка на последнюю сборку с DMG;
+- `dist/latest-app` — ссылка на последнюю успешно собранную `.app`;
+- внутри результата находятся `.app`, DMG, SHA-256, `build-info.json` и `build.log`.
+
+Старые папки не перезаписываются. Команда очистки удаляет старые результаты, но всегда сохраняет последнюю успешную сборку, на которую указывает `dist/latest`:
 
 ```bash
+./build_macos.sh --clean
+```
+
+Если нужно удалить абсолютно все сборки, включая последнюю:
+
+```bash
+./build_macos.sh --clean-all
+```
+
+Команды удаляют только содержимое `dist`, созданное сборщиком, и не затрагивают исходники, `.venv`, базы или пользовательские данные.
+
+## Однократная настройка
+
+Нужны Xcode Command Line Tools и Python для этой архитектуры:
+
+```bash
+xcode-select --install
 python3 -m venv .venv
-.venv/bin/python -m pip install Flask requests python-dotenv cryptography Werkzeug Jinja2 pywebview yubico-client pyinstaller pillow
+.venv/bin/python -m pip install -r requirements-build-macos.txt
 ```
 
-Нужны Xcode Command Line Tools и штатные `codesign`, `ditto`, `hdiutil`.
-`create-dmg` не требуется. Текущий скрипт собирает arm64 для Apple Silicon.
-
-## 2. Запустить тесты
+Если окружение находится в другом месте, задайте его явно:
 
 ```bash
-.venv/bin/python -m unittest discover -s tests -v
+BUILD_PYTHON=/path/to/python ./build_macos.sh --open
 ```
 
-Тесты используют временные данные. В том числе проверяют сохранение ключа
-и чтение базы после повторного запуска упакованного приложения.
-
-## 3. Собрать приложение
-
-Выберите новую папку результата; существующее приложение не перезаписывается:
+Проверка без сборки:
 
 ```bash
-bash build_macos.sh --stage app --output dist/macos-arm64-v6.0.0-final
+./build_macos.sh --check
 ```
 
-Для следующей сборки укажите другое имя папки. Можно выполнить оба этапа сразу
-командой `bash build_macos.sh`: скрипт сам создаст папку с датой и временем.
-Для другого Python задайте `BUILD_PYTHON=/путь/к/python` перед командой.
+## Режимы сборки
 
-Результат — `dist/macos-arm64-v6.0.0-final/AllManagerC.app`.
-
-Скрипт `tools/build_macos.py`:
-
-- создаёт `.icns` из GitHub-иконки `static/images/ALLc.png`;
-- включает шаблоны, статику, схему и чистый конфиг;
-- не включает `.env`, базы, загруженные файлы и настройки YubiKey;
-- использует Cocoa/WebKit и исключает Qt;
-- проверяет подпись через `codesign --verify --deep --strict`;
-- сохраняет старые сборки и виртуальные окружения.
-
-При работе из Codex PyInstaller может запросить разрешение на запись своего
-кэша в `~/Library/Application Support/pyinstaller`. Это служебный кэш сборки.
-
-## 4. Проверить запуск
+Обычная команда выполняет тесты, собирает приложение и создаёт DMG:
 
 ```bash
-open dist/macos-arm64-v6.0.0-final/AllManagerC.app
+./build_macos.sh
 ```
 
-Для проверки с отдельными пустыми данными можно запустить исполняемый файл:
+Собрать только приложение можно так:
 
 ```bash
-ALLMANAGERC_DATA_DIR=/tmp/allmanagerc-test-profile \
-  dist/macos-arm64-v6.0.0-final/AllManagerC.app/Contents/MacOS/AllManagerC
+./build_macos.sh --stage app
 ```
 
-Обычный запуск хранит данные и ключ в
-`~/Library/Application Support/AllManagerC`. Первый запуск создаёт собственный
-ключ; следующие должны использовать его повторно. Исходные базы обоих проектов
-по-прежнему сохранены отдельно, их импорт пользователь отложил.
-
-## 5. Создать DMG
-
-После проверки приложения, с той же папкой результата:
+После этого DMG создаётся без повторной сборки приложения:
 
 ```bash
-bash build_macos.sh --stage dmg --output dist/macos-arm64-v6.0.0-final
+./build_macos.sh --stage dmg
 ```
 
-Результат: `AllManagerC_Installer_v6.0.0_arm64.dmg` и файл `.dmg.sha256` рядом.
-Внутри образа — `AllManagerC.app` и ссылка на `/Applications`.
+Этот режим использует `dist/latest-app`, поэтому путь и версию указывать не нужно. `--skip-tests` оставлен только для локальной диагностики; перед релизом его не используйте.
 
-`hdiutil` требует доступа к системным устройствам дисковых образов. При ошибке
-`Device not configured` в песочнице Codex разрешите выполнение вне песочницы.
-Если подготовленная папка `dmg-content` уже создана, повторить только упаковку:
+`--output` доступен для нестандартного сценария и должен указывать на пустую папку. Обычно он не нужен.
+
+## Версия и релиз
+
+Перед новой публикацией измените версию единой командой:
 
 ```bash
-hdiutil create -volname 'AllManagerC 6.0.0' \
-  -srcfolder dist/macos-arm64-v6.0.0-final/dmg-content \
-  -format UDZO -fs HFS+ \
-  dist/macos-arm64-v6.0.0-final/AllManagerC_Installer_v6.0.0_arm64.dmg
-hdiutil verify dist/macos-arm64-v6.0.0-final/AllManagerC_Installer_v6.0.0_arm64.dmg
-shasum -a 256 dist/macos-arm64-v6.0.0-final/AllManagerC_Installer_v6.0.0_arm64.dmg
+python3 scripts/version.py bump patch   # или minor, major, set X.Y.Z
+python3 scripts/version.py check
 ```
 
-## 6. Установка
+Подробные правила синхронизации файлов находятся в [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md). Сборка сама остановится при рассинхронизации.
 
-Откройте DMG и перетащите AllManagerC в Applications. Если там уже есть старая
-версия, сначала сохраните её, если нужен откат. Запустите приложение из Applications.
-
-Сборка имеет локальную ad-hoc подпись PyInstaller. Developer ID и нотариальное
-заверение Apple не выполнялись. Публикация GitHub Release — отдельное действие;
-скрипт ничего не отправляет на GitHub.
-
-## 7. Подготовить общий релиз Windows и macOS
-
-Полезные сведения из прежнего QUICK_RELEASE_GUIDE.md перенесены сюда.
-Платформы можно собирать в любом порядке. Для одной версии используйте один
-Git-тег и один GitHub Release, добавляя в него инсталляторы обеих платформ.
-Виртуальные окружения создаются отдельно на каждой системе и не попадают в Git.
-
-Перед публичным релизом объединённого кода:
-
-1. Выберите новый номер версии: локальная сборка использует номер из `config.json`,
-   но содержит более новые изменения. Не переиспользуйте старый опубликованный тег.
-2. Согласуйте версию в `config.json`, Windows-инсталляторе `AllManagerC.iss`,
-   резервных значениях версии в коде и документации.
-3. Обновите `CHANGELOG.md` и подготовьте заметки о новом релизе.
-4. Проверьте `git status` и diff; включите в коммит только предназначенные для
-   публикации исходники. Личные ключи, базы и `.local-backups` остаются локальными.
-5. Создайте аннотированный тег (`git tag -a`) на проверенном коммите.
-   Сборки Windows и macOS должны соответствовать этому же коммиту.
-6. Проверьте запуск и установку на целевых системах, сохраните SHA256 каждого файла.
-
-Если часть платформ ещё не проверена, релиз можно оставить черновиком или
-pre-release. Снимать этот статус следует после проверки всех обещанных сборок.
-
-### Добавить DMG к существующему релизу
-
-Через [страницу релизов проекта](https://github.com/kureinmaxim/AllManagerC/releases):
-откройте нужный релиз, выберите Edit, добавьте DMG и файл `.sha256`, укажите
-архитектуру arm64 и результаты проверки в описании. Ссылки и хеш обновите в README.
-
-Через GitHub CLI, заменив значения на новый тег и фактический путь:
+Для создания релиза GitHub используйте имя DMG и хеш из `dist/latest/build-info.json`; пример загрузки без ручного набора версии:
 
 ```bash
-RELEASE_TAG=vX.Y.Z
-DMG_PATH=dist/папка-сборки/AllManagerC_Installer_vX.Y.Z_arm64.dmg
-
+RELEASE_TAG=$(python3 -c 'import json; print("v" + json.load(open("config.json"))["app_info"]["version"])')
+DMG_PATH=$(python3 -c 'import json, pathlib; p=pathlib.Path("dist/latest"); print(p / json.loads((p / "build-info.json").read_text())["dmg"])')
 gh release upload "$RELEASE_TAG" "$DMG_PATH" "$DMG_PATH.sha256"
-# Только после завершения проверки всех обещанных платформ:
-gh release edit "$RELEASE_TAG" --prerelease=false
 ```
 
-Эти команды публикуют файлы; они не выполняются скриптом сборки автоматически.
-Не используйте `--clobber`, если не намерены заменить уже опубликованный файл.
+Публикация в GitHub не выполняется автоматически.
 
-### Сопутствующая сборка Windows
+## Проверка и установка
 
-Выполняется на Windows из того же коммита, со своим Python-окружением:
-
-```powershell
-python build_windows.py
-& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" AllManagerC.iss
-```
-
-Оператор `&` нужен PowerShell для запуска программы по пути с пробелами.
-Затем добавьте Windows-инсталлятор к тому же релизу.
-
-### Если виртуальное окружение не запускается
-
-Перенесённое с Windows окружение на Mac не работает. Сохраните его при необходимости
-и создайте отдельное, например `.venv-macos`, командами из шага 1. Запускайте сборку так:
+Откройте приложение из последнего результата:
 
 ```bash
-BUILD_PYTHON=.venv-macos/bin/python bash build_macos.sh
+open dist/latest/AllManagerC.app
 ```
 
-Если отсутствует только pip, попробуйте `python -m ensurepip --upgrade` с Python
-нужного окружения. Скрипт сборки больше не удаляет и не пересоздаёт окружения сам.
+В DMG перетащите `AllManagerC.app` в `Applications`. Подпись сборки локальная ad-hoc: нотариальное заверение Apple и Developer ID не используются.
 
-Связанные документы: [README](README.md), [CHANGELOG](CHANGELOG.md),
-[работа на двух платформах](DEPLOYMENT.md).
+Сборка не включает `.env`, базы, ключи, настройки YubiKey или другие личные данные. Они остаются в `~/Library/Application Support/AllManagerC`.
+
+## Если сборка прервалась
+
+Подробности находятся в `build.log` папки текущего результата. Незавершённая сборка не меняет `dist/latest`. Если ошибка произошла на упаковке DMG, повторите:
+
+```bash
+./build_macos.sh --stage dmg
+```
+
+Временные файлы находятся в `build/macos` и удаляются автоматически. Для ошибки `hdiutil: Device not configured` запустите сборку в обычном локальном терминале и повторите упаковку DMG.
+
+Сборка Windows выполняется отдельно по [DEPLOYMENT.md](DEPLOYMENT.md); обе платформы должны использовать один Git-тег.

@@ -1,0 +1,11 @@
+# Native Cocoa/WebKit build; Qt is not needed on macOS.
+Flask>=3.0.0
+requests
+python-dotenv
+cryptography
+Werkzeug
+Jinja2
+pywebview
+yubico-client>=1.13.0
+pyinstaller>=6.16.0
+pillow

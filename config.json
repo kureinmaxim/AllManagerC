@@ -1,7 +1,7 @@
 {
   "SECRET_KEY_FILE": ".env",
   "app_info": {
-    "version": "6.0.1",
+    "version": "6.0.3",
     "release_date": "24.09.2026",
     "developer": "Куреин М.Н.",
     "description": "Менеджер сервисов с шифрованием данных",

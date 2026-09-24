@@ -124,4 +124,4 @@ encryption key across restarts.
 
 The environment loader no longer prints `.env` contents or environment secrets.
 These are specific fixes, not a claim that all vulnerabilities are resolved.
-Historical guides in `docs/legacy/` are not the current security policy.
+Historical guides in `docs/` are not the current security policy.

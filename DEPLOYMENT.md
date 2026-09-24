@@ -23,8 +23,62 @@ Windows собирается отдельно на Windows. Запуск на Li
 
 ### Windows
 
-Запустите Windows-инсталлятор, собранный из нужной версии исходного кода.
-Порядок сборки: `build_windows.py`, затем Inno Setup с `AllManagerC.iss`.
+Запустите Windows-инсталлятор из папки `dist\latest`. Инсталлятор создаёт ярлык в меню Пуск и, по желанию, на рабочем столе.
+
+## Сборка Windows
+
+Полная инструкция находится в [BUILD_WINDOWS.md](BUILD_WINDOWS.md).
+
+Сборка Windows устроена так же, как macOS-сборка: версия берётся автоматически из `config.json`, а папка результата получает имя с версией и временем. Ручное редактирование `AllManagerC.iss` и ручной ввод имени установщика не нужны.
+
+Однократно установите Python, зависимости и [Inno Setup 6](https://jrsoftware.org/isinfo.php):
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
+
+Проверка версии и инструментов:
+
+```powershell
+.\.venv\Scripts\python.exe build_windows.py --check
+```
+
+Полная сборка приложения и установщика:
+
+```powershell
+.\.venv\Scripts\python.exe build_windows.py
+```
+
+Результат появится в `dist\AllManagerC-<версия>-windows-<дата-время>`. `dist\latest` всегда содержит копию последней успешной сборки. В папке результата находятся папка приложения, `AllManagerC_Installer_v<версия>.exe` и `build-info.json`.
+
+Старые результаты можно убрать, сохранив последнюю сборку:
+
+```powershell
+.\.venv\Scripts\python.exe build_windows.py --clean
+```
+
+Для полной очистки всех Windows-артефактов:
+
+```powershell
+.\.venv\Scripts\python.exe build_windows.py --clean-all
+```
+
+Перед новым релизом обновите версию из корня проекта и проверьте синхронизацию:
+
+```powershell
+py -3 scripts/version.py bump patch
+py -3 scripts/version.py check
+.\.venv\Scripts\python.exe build_windows.py
+```
+
+Если Inno Setup установлен не в стандартный каталог, задайте путь к компилятору:
+
+```powershell
+$env:ISCC = 'D:\Tools\Inno Setup 6\ISCC.exe'
+.\.venv\Scripts\python.exe build_windows.py
+```
+
 
 ## Запуск из исходного кода
 

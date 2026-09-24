@@ -28,6 +28,8 @@ sys._MEIPASS = sys.argv[2]
 spec = importlib.util.spec_from_file_location('packaged_test', Path(sys.argv[1]) / 'app.py')
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
+from app_version import VERSION
+assert m.app.config['app_info']['version'] == VERSION
 with m.app.test_request_context():
     marker = Path(m.APP_DATA_DIR) / 'first-run.done'
     if marker.exists():

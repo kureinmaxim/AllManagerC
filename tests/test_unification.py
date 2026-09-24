@@ -1,6 +1,8 @@
 """Regression tests in a temporary project; never open the user's databases or keys."""
 import importlib.util
 import json
+import re
+from html.parser import HTMLParser
 import os
 from pathlib import Path
 import shutil
@@ -14,6 +16,7 @@ from unittest.mock import patch
 
 from cryptography.fernet import Fernet
 from werkzeug.datastructures import MultiDict
+from jinja2 import nodes
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,7 +27,7 @@ class UnificationTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory()
         cls.work = Path(cls.temp.name)
         cls.previous_cwd = Path.cwd()
-        for name in ['app.py', 'runtime_paths.py', 'localization.py', 'yubikey_auth.py', 'security_logger.py', 'ai_services_schema.json']:
+        for name in ['app.py', 'app_version.py', 'runtime_paths.py', 'localization.py', 'yubikey_auth.py', 'security_logger.py', 'ai_services_schema.json']:
             shutil.copy2(ROOT / name, cls.work / name)
         for name in ['templates', 'static', 'translations']:
             shutil.copytree(ROOT / name, cls.work / name)
@@ -198,6 +201,63 @@ class UnificationTests(unittest.TestCase):
             self.assertIn(f'<html lang="{html_lang}"', page)
             self.assertIn(marker, page)
         self.assertEqual(self.client.get('/language/fr').status_code, 404)
+
+    def test_settings_help_about_catalogs_are_complete(self):
+        for filename in ('layout.html', 'settings.html', 'help.html', 'about.html'):
+            source = (ROOT / 'templates' / filename).read_text()
+            for call in self.m.app.jinja_env.parse(source).find_all(nodes.Call):
+                if isinstance(call.node, nodes.Name) and call.node.name == '_':
+                    key = call.args[0].value
+                    for language in ('en', 'zh'):
+                        with self.subTest(template=filename, language=language, key=key):
+                            self.assertTrue(self.m.app.extensions['translations'][language].get(key))
+
+    def test_settings_help_about_have_no_untranslated_ui(self):
+        class VisibleText(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.skipped = 0
+                self.strings = []
+
+            def handle_starttag(self, tag, attrs):
+                if tag in ('script', 'style'):
+                    self.skipped += 1
+                for key, value in attrs:
+                    if key in ('title', 'placeholder', 'aria-label') and value:
+                        self.strings.append(value)
+
+            def handle_endtag(self, tag):
+                if tag in ('script', 'style'):
+                    self.skipped -= 1
+
+            def handle_data(self, text):
+                if not self.skipped and text.strip() != 'Русский':
+                    self.strings.append(text)
+
+        for language in ('en', 'zh'):
+            self.client.get('/language/' + language)
+            for path in ('/settings', '/help', '/about'):
+                with self.subTest(language=language, path=path):
+                    response = self.client.get(path)
+                    self.assertEqual(response.status_code, 200)
+                    parser = VisibleText()
+                    parser.feed(response.get_data(as_text=True))
+                    untranslated = [text for text in parser.strings if re.search('[А-Яа-яЁё]', text)]
+                    self.assertEqual(untranslated, [])
+
+    def test_settings_validation_messages_follow_language(self):
+        for language, expected in [('en', 'The keys do not match.'), ('zh', '两个密钥不一致。'), ('ru', 'Ошибка: ключи не совпадают.')]:
+            self.client.get('/language/' + language)
+            response = self.client.post('/settings/change-key', data={'new_key': 'a', 'confirm_key': 'b'}, follow_redirects=True)
+            self.assertIn(expected, response.get_data(as_text=True))
+
+    def test_localization_preserves_user_text(self):
+        self.client.post('/add', data={'name': 'Мой сервис', 'notes': 'Справка — моя заметка'})
+        for language in ('en', 'zh'):
+            self.client.get('/language/' + language)
+            page = self.client.get('/').get_data(as_text=True)
+            self.assertIn('Мой сервис', page)
+            self.assertIn('Справка — моя заметка', page)
 
     def test_language_redirect_rejects_external_target(self):
         response = self.client.get('/language/en?next=https://example.com')

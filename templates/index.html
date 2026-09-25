@@ -60,15 +60,22 @@
           <div class="card card-carousel-card" id="carousel-card-{{ loop.index0 }}" data-service-id="{{ server.id }}">
             {% include 'card_content.html' %}
             <div class="card-stack-actions">
-                    <div class="d-flex justify-content-between mt-3">
-                        <a href="{{ url_for('edit_service', service_id=server.id) }}" class="btn btn-sm btn-outline-secondary me-2">
-                            <i class="bi bi-pencil"></i> {{ _("Редактировать") }}
-                    </a>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('edit_service', service_id=server.id) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-pencil"></i> {{ _("Редактировать") }}
+                            </a>
+                            <form action="{{ url_for('clear_service', service_id=server.id) }}" method="post" onsubmit="return confirm({{ _("Очистить сохранённые данные этого сервера? Карточка останется.")|tojson|forceescape }});">
+                            <button type="submit" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-eraser"></i> {{ _("Очистить") }}
+                                </button>
+                            </form>
+                        </div>
                         <form action="{{ url_for('delete_service', service_id=server.id) }}" method="post" onsubmit="return confirm({{ _("Вы уверены, что хотите удалить этот AI-сервис?")|tojson|forceescape }});">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-trash"></i> {{ _("Удалить") }}
                             </button>
-                    </form>
+                        </form>
                     </div>
                 </div>
             </div>

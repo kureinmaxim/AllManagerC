@@ -389,5 +389,8 @@
   "❌ Ошибка при проверке: %(value1)s": "❌ Verification failed: %(value1)s",
   "❌ Файл расшифрован, но содержит некорректные JSON данные.": "❌ The file was decrypted, but it contains invalid JSON data.",
   "Не указано": "Not specified",
-  " и еще %(count)s": " and %(count)s more"
+  " и еще %(count)s": " and %(count)s more",
+  "Очистить": "Clear",
+  "Очистить сохранённые данные этого сервера? Карточка останется.": "Clear this server data? The card will remain.",
+  "Данные сервера очищены. Карточка сервиса сохранена.": "Server data cleared. The service card was kept."
 }

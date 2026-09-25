@@ -1341,6 +1341,28 @@ def delete_service(service_id):
     return redirect('/')
 
 
+@app.route('/clear/<service_id>', methods=['POST'])
+@yubikey_auth.require_auth if yubikey_auth else (lambda f: f)
+def clear_service(service_id):
+    """Remove the stored details while keeping the service card itself."""
+    services = load_ai_services()
+    try:
+        service_id_int = int(service_id)
+    except ValueError:
+        flash(_('Неверный ID сервиса.'), 'danger')
+        return redirect(url_for('index'))
+    service = next((item for item in services if item.get('id') == service_id_int), None)
+    if not service:
+        flash(_('AI-сервис не найден.'), 'danger')
+        return redirect(url_for('index'))
+    for field in ('credentials', 'credentials_list', 'subscription', 'features', 'login_url', 'notes', 'documentation_url'):
+        service.pop(field, None)
+    save_ai_services(services)
+    flash(_('Данные сервера очищены. Карточка сервиса сохранена.'), 'success')
+    log_security_event('clear_service', f'Очищены данные сервиса {service_id_int}')
+    return redirect(url_for('index'))
+
+
 @app.route('/delete-all-services', methods=['POST'])
 @yubikey_auth.require_auth if yubikey_auth else (lambda f: f)
 def delete_all_services():

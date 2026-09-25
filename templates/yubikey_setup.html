@@ -41,7 +41,7 @@
                                     <small class="text-muted">{{ _("Добавлен:") }} {{ key.created_at[:10] }}</small>
                                 </div>
                                 <form method="POST" action="{{ url_for('yubikey_remove_key', key_index=loop.index0) }}"
-                                      onsubmit="return confirm({{ _("Удалить ключ &quot;\u000015\u0000&quot;?")|tojson|forceescape }})" style="display: inline;">
+                                      onsubmit="return confirm({{ _('Удалить ключ \"%(name)s\"?', name=key.name)|tojson }})" style="display: inline;">
                                     <button type="submit" class="btn btn-outline-danger btn-sm">
                                         <i class="bi bi-trash"></i> {{ _("Удалить") }}
                                     </button>

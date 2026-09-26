@@ -2,7 +2,7 @@
 
 Language: **English** · [Русский](README_ru.md)
 
-[![Source version](https://img.shields.io/badge/version-6.0.5-blue?style=flat-square)](VERSION_MANAGEMENT.md)
+[![Source version](https://img.shields.io/badge/version-6.0.6-blue?style=flat-square)](VERSION_MANAGEMENT.md)
 
 <p align="center">
   <img src="static/images/ALLc.png" alt="AllManagerC" width="160">
@@ -31,7 +31,7 @@ and move your records between installations with encrypted exports.
 
 Built with **Python, Flask and PyWebView**. Data lives on your computer; there is no
 AllManagerC cloud account to create. YubiKey OTP verification requires internet.
-Russian is the default interface language. English and Simplified Chinese translations are in progress.
+Russian, English and Simplified Chinese are available. English is the default interface language.
 
 <p align="center">
   <img src="docs/images/service-board.png" alt="AllManagerC service cards with fictional accounts and subscription details" width="960">

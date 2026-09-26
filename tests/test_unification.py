@@ -218,6 +218,16 @@ class UnificationTests(unittest.TestCase):
         self.assertIn('const serverZoom = "70"', page)
         self.assertEqual(fresh.post('/ui_preferences', json={'zoom': '33'}).status_code, 400)
 
+    def test_fresh_session_defaults_to_english(self):
+        config_path = self.work / 'config.json'
+        config = json.loads(config_path.read_text(encoding='utf-8'))
+        config.pop('ui', None)
+        config_path.write_text(json.dumps(config), encoding='utf-8')
+        fresh = self.m.app.test_client()
+        page = fresh.get('/').data.decode('utf-8')
+        self.assertIn('<html lang="en"', page)
+        self.assertIn('Settings', page)
+
     def test_settings_help_about_catalogs_are_complete(self):
         for filename in ('layout.html', 'settings.html', 'help.html', 'about.html'):
             source = (ROOT / 'templates' / filename).read_text()

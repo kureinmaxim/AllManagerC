@@ -1,5 +1,5 @@
 #define MyAppName "AllManagerC"
-#define MyAppVersion "6.0.5"
+#define MyAppVersion "6.0.6"
 #ifndef BuildDir
 #define BuildDir "dist\\AllManagerC"
 #endif

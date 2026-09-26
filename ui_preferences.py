@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 ALLOWED_LANGUAGES = frozenset({'ru', 'en', 'zh'})
 ALLOWED_ZOOMS = frozenset({'70', '80', '90', '100'})
-DEFAULT_LANGUAGE = 'ru'
+DEFAULT_LANGUAGE = 'en'
 DEFAULT_ZOOM = '80'
 UI_CONFIG_KEY = 'ui'
 

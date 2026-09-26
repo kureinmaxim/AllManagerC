@@ -207,9 +207,35 @@
                 .finally(()=>{ btn.disabled=false; btn.textContent={{ _("Сменить PIN")|tojson }}; });
         }
         // Применить сохранённый масштаб при загрузке
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        const allowedZooms = ['70', '80', '90', '100'];
+        const serverZoom = {{ (ui_zoom or '80')|tojson }};
+
+        function resolveZoom(preferred) {
+            const candidate = String(preferred || '').replace('%', '');
+            if (allowedZooms.includes(candidate)) {
+                return candidate;
+            }
+            const cookieZoom = getCookie('ui_zoom');
+            if (allowedZooms.includes(cookieZoom)) {
+                return cookieZoom;
+            }
+            return allowedZooms.includes(serverZoom) ? serverZoom : '80';
+        }
+
+        function applyZoom(zoom) {
+            document.body.style.zoom = zoom + '%';
+        }
+
+        applyZoom(resolveZoom(serverZoom));
+
         document.addEventListener('DOMContentLoaded', function() {
-            const savedZoom = getCookie('ui_zoom') || '80';  // По умолчанию 80%
-            document.body.style.zoom = savedZoom + '%';
+            applyZoom(resolveZoom(serverZoom));
 
             // Инициализация dropdown
             const dropdownElementList = document.querySelectorAll('.dropdown-toggle');
@@ -229,20 +255,24 @@
             });
         });
 
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
-
         function setTheme(theme) {
             document.documentElement.setAttribute('data-bs-theme', theme);
             setCookie('theme', theme, 365);
         }
 
         function setZoom(zoom) {
-            document.body.style.zoom = zoom + '%';
-            setCookie('ui_zoom', zoom, 365);
+            const nextZoom = resolveZoom(zoom);
+            applyZoom(nextZoom);
+            setCookie('ui_zoom', nextZoom, 365);
+            fetch('{{ url_for("save_ui_preferences_route") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ zoom: nextZoom }),
+                credentials: 'same-origin'
+            }).catch(function() { /* cookie already updated as a fallback */ });
         }
 
         function setCookie(name, value, days) {

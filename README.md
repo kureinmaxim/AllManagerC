@@ -2,7 +2,7 @@
 
 Language: **English** · [Русский](README_ru.md)
 
-[![Source version](https://img.shields.io/badge/version-6.0.4-blue?style=flat-square)](VERSION_MANAGEMENT.md)
+[![Source version](https://img.shields.io/badge/version-6.0.5-blue?style=flat-square)](VERSION_MANAGEMENT.md)
 
 <p align="center">
   <img src="static/images/ALLc.png" alt="AllManagerC" width="160">

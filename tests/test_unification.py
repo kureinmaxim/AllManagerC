@@ -27,7 +27,7 @@ class UnificationTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory()
         cls.work = Path(cls.temp.name)
         cls.previous_cwd = Path.cwd()
-        for name in ['app.py', 'app_version.py', 'runtime_paths.py', 'localization.py', 'yubikey_auth.py', 'security_logger.py', 'ai_services_schema.json']:
+        for name in ['app.py', 'app_version.py', 'runtime_paths.py', 'localization.py', 'ui_preferences.py', 'yubikey_auth.py', 'security_logger.py', 'ai_services_schema.json']:
             shutil.copy2(ROOT / name, cls.work / name)
         for name in ['templates', 'static', 'translations']:
             shutil.copytree(ROOT / name, cls.work / name)
@@ -201,6 +201,22 @@ class UnificationTests(unittest.TestCase):
             self.assertIn(f'<html lang="{html_lang}"', page)
             self.assertIn(marker, page)
         self.assertEqual(self.client.get('/language/fr').status_code, 404)
+
+    def test_ui_preferences_persist_in_profile_config(self):
+        self.assertEqual(self.client.get('/language/zh?next=/').status_code, 302)
+        zoom = self.client.post('/ui_preferences', json={'zoom': '70'})
+        self.assertEqual(zoom.status_code, 200)
+        self.assertTrue(zoom.get_json()['success'])
+        config = json.loads((self.work / 'config.json').read_text(encoding='utf-8'))
+        self.assertEqual(config['ui']['language'], 'zh')
+        self.assertEqual(config['ui']['zoom'], '70')
+
+        # Cookie-less client still restores language and zoom from the profile.
+        fresh = self.m.app.test_client()
+        page = fresh.get('/').data.decode('utf-8')
+        self.assertIn('<html lang="zh-Hans"', page)
+        self.assertIn('const serverZoom = "70"', page)
+        self.assertEqual(fresh.post('/ui_preferences', json={'zoom': '33'}).status_code, 400)
 
     def test_settings_help_about_catalogs_are_complete(self):
         for filename in ('layout.html', 'settings.html', 'help.html', 'about.html'):

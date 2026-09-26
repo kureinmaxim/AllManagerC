@@ -1,6 +1,6 @@
 # AllManagerC
 
-[![Версия исходников](https://img.shields.io/badge/version-6.0.4-blue?style=flat-square)](VERSION_MANAGEMENT.md)
+[![Версия исходников](https://img.shields.io/badge/version-6.0.5-blue?style=flat-square)](VERSION_MANAGEMENT.md)
 
 Порядок обновления версий и команды проверки: [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md).
 

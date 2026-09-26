@@ -177,6 +177,7 @@ def get_app_data_dir():
 
 # --- НОВАЯ ЛОГИКА ИНИЦИАЛИЗАЦИИ КОНФИГА ---
 APP_DATA_DIR = get_app_data_dir()
+app.config['APP_DATA_DIR'] = APP_DATA_DIR
 is_frozen = getattr(sys, 'frozen', False)
 
 # --- ИНИЦИАЛИЗАЦИЯ YubiKey ---
@@ -398,6 +399,7 @@ def enforce_authentication_dynamic():
         # Разрешённые эндпоинты без входа (включая скрытый PIN-вход)
         allowed_endpoints = {
             'yubikey_login', 'yubikey_instructions', 'change_language',
+            'save_ui_preferences_route',
             'secret_login', 'change_secret_pin',
             'static', 'help_page', 'about_page', 'set_clipboard', 'shutdown'
         }
@@ -414,7 +416,7 @@ def enforce_authentication_dynamic():
         # Если ключей нет — разрешаем только настройки/мастер и статику
         try:
             if len(yubikey_auth.get_keys()) == 0 and not yubikey_auth.static_passwords:
-                if ep in {'yubikey_setup', 'static', 'secret_login', 'yubikey_login', 'change_language'}:
+                if ep in {'yubikey_setup', 'static', 'secret_login', 'yubikey_login', 'change_language', 'save_ui_preferences_route'}:
                     return None
                 session.pop('yubikey_authenticated', None)
                 return redirect('/yubikey/setup')
